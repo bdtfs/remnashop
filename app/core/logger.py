@@ -128,3 +128,9 @@ def setup_logging(config: LoggingConfig) -> None:
 
     asyncio_logger = logging.getLogger("asyncio")
     asyncio_logger.setLevel(logging.WARNING)
+
+    httpcore_logger = logging.getLogger("httpcore")
+    httpcore_logger.setLevel(logging.WARNING)
+
+    httpx_logger = logging.getLogger("httpx")
+    httpx_logger.setLevel(logging.WARNING)

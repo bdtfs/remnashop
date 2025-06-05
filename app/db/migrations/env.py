@@ -18,7 +18,7 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 
-def process_revision_directives(context, revision, directives):
+def process_revision_directives(context, revision, directives) -> None:
     migration_script = directives[0]
     head_revision = ScriptDirectory.from_config(context.config).get_current_head()
 

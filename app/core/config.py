@@ -4,10 +4,11 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Optional, Self
 
-from pydantic import Field, Secret, SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator
+from pydantic_core.core_schema import FieldValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from app.core.constants import API_V1, WEBHOOK_PATH
+from app.core.constants import API_V1, DOMAIN_REGEX, WEBHOOK_PATH
 from app.core.enums import ArchiveFormat, Locale, LogLevel
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -24,6 +25,8 @@ DEFAULT_BOT_RESET_WEBHOOK = True
 DEFAULT_BOT_DROP_PENDING_UPDATES = False
 DEFAULT_BOT_SETUP_COMMANDS = True
 DEFAULT_BOT_USE_BANNERS = True
+
+DEFAULT_REMNA_HOST = "remnawave"
 
 DEFAULT_DB_HOST = "remnashop-db"
 DEFAULT_DB_PORT = 5432
@@ -43,7 +46,7 @@ class BotConfig(BaseSettings, env_prefix="BOT_"):
     token: SecretStr
     secret_token: SecretStr = Field(default_factory=lambda: SecretStr(secrets.token_hex()))
     dev_id: int
-    domain: Secret[str]
+    domain: SecretStr
     host: str = DEFAULT_BOT_HOST
     port: int = DEFAULT_BOT_PORT
     webhook_port: int = DEFAULT_BOT_WEBHOOK_PORT
@@ -52,15 +55,32 @@ class BotConfig(BaseSettings, env_prefix="BOT_"):
     setup_commands: bool = DEFAULT_BOT_SETUP_COMMANDS
     use_banners: bool = DEFAULT_BOT_USE_BANNERS
 
+    @field_validator("token", "secret_token", "dev_id")
+    @classmethod
+    def validate_bot_fields(cls: Self, field: object, info: FieldValidationInfo) -> object:
+        value = field
+
+        if isinstance(field, SecretStr):
+            value = field.get_secret_value()
+
+        if not value or str(value).strip().lower() in {"change_me", ""}:
+            raise ValueError(
+                f"BOT_{info.field_name.upper()} must be set and not equal to 'change_me'"
+            )
+
+        return field
+
     @field_validator("domain")
     @classmethod
-    def validate_domain(cls, field: Secret[str]) -> Secret[str]:
-        DOMAIN_REGEX = r"^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$"
+    def validate_domain(cls: Self, field: SecretStr) -> SecretStr:
         domain = field.get_secret_value()
-        if not domain:
-            raise ValueError("Domain cannot be empty")
+
+        if not domain or str(domain).strip().lower() in {"change_me", ""}:
+            raise ValueError("BOT_DOMAIN must be set and not equal to 'change_me'")
+
         if not re.match(DOMAIN_REGEX, domain):
-            raise ValueError("Invalid domain format")
+            raise ValueError("BOT_DOMAIN has invalid format")
+
         return field
 
     @property
@@ -73,12 +93,60 @@ class BotConfig(BaseSettings, env_prefix="BOT_"):
         return SecretStr(url)
 
 
+class RemnaConfig(BaseSettings, env_prefix="REMNA_"):
+    host: SecretStr = SecretStr(DEFAULT_REMNA_HOST)  # TODO: docker
+    token: SecretStr
+
+    @field_validator("host")
+    @classmethod
+    def validate_host(cls: Self, field: SecretStr) -> SecretStr:
+        host = field.get_secret_value()
+
+        if not host:
+            raise ValueError("REMNA_HOST cannot be empty")
+
+        if host == DEFAULT_REMNA_HOST:
+            return field
+
+        if re.match(DOMAIN_REGEX, host):
+            return field
+
+        raise ValueError(
+            "REMNA_HOST must be 'remnawave' (docker) or a valid domain (e.g., example.com)"
+        )
+
+    @field_validator("token")
+    @classmethod
+    def validate_remna_token(cls: Self, field: SecretStr) -> SecretStr:
+        token = field.get_secret_value()
+
+        if not token or str(token).strip().lower() in {"change_me", ""}:
+            raise ValueError("REMNA_TOKEN must be set and not equal to 'change_me'")
+
+        return field
+
+    @property
+    def url(self) -> SecretStr:
+        url = f"https://{self.host.get_secret_value()}"
+        return SecretStr(url)
+
+
 class DatabaseConfig(BaseSettings, env_prefix="DB_"):
     host: str = DEFAULT_DB_HOST
     port: int = DEFAULT_DB_PORT
     name: str = DEFAULT_DB_NAME
     user: str = DEFAULT_DB_USER
-    password: Secret[str]
+    password: SecretStr
+
+    @field_validator("password")
+    @classmethod
+    def validate_db_password(cls: Self, field: SecretStr) -> SecretStr:
+        password = field.get_secret_value()
+
+        if not password or str(password).strip().lower() in {"change_me", ""}:
+            raise ValueError("DB_PASSWORD must be set and not equal to 'change_me'")
+
+        return field
 
     def dsn(self, scheme: str = "postgresql+asyncpg") -> str:
         return (
@@ -115,7 +183,7 @@ class I18nConfig(BaseSettings, env_prefix="I18N_"):
     default_locale: Locale = DEFAULT_I18N_LOCALE
 
 
-class SQLAlchemyConfig(BaseSettings, env_prefix="ALCHEMY_"):  # TODO
+class SQLAlchemyConfig(BaseSettings, env_prefix="ALCHEMY_"):  # TODO:
     echo: bool = False
     echo_pool: bool = False
     pool_size: int = 25
@@ -126,13 +194,14 @@ class SQLAlchemyConfig(BaseSettings, env_prefix="ALCHEMY_"):  # TODO
 
 class AppConfig(BaseSettings):
     bot: BotConfig = Field(default_factory=BotConfig)
+    remna: RemnaConfig = Field(default_factory=RemnaConfig)
     db: DatabaseConfig = Field(default_factory=DatabaseConfig)
     redis: RedisConfig = Field(default_factory=RedisConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
     i18n: I18nConfig = Field(default_factory=I18nConfig)
     alchemy: SQLAlchemyConfig = Field(default_factory=SQLAlchemyConfig)
 
-    origins: list[str] = []  # TODO:
+    origins: list[str] = []  # NOTE: for miniapp
 
     model_config = SettingsConfigDict(
         extra="ignore",

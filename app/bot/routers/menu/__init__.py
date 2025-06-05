@@ -1,7 +1,6 @@
-from .dialog import dialog
-from .handler import router
+from . import dialog, handler
 
 __all__ = [
     "dialog",
-    "router",
+    "handler",
 ]

@@ -21,6 +21,7 @@ from app.bot.routers import routers
 
 from .i18n import create_i18n_middleware
 from .redis import create_redis
+from .remnawave import create_remnawave
 from .session_pool import create_session_pool
 
 if TYPE_CHECKING:
@@ -48,6 +49,7 @@ def create_dispatcher(config: AppConfig) -> Dispatcher:
         session_pool=create_session_pool(config=config),
         # redis= # TODO: redis repository for cache
         i18n_middleware=i18n_middleware,
+        remnawave=create_remnawave(config=config),
     )
 
     # request -> outer -> filter -> inner -> handler #

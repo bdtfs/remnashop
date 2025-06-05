@@ -1,0 +1,14 @@
+import logging
+
+from remnawave_api import RemnawaveSDK
+
+from app.core.config import AppConfig
+
+logger = logging.getLogger(__name__)
+
+
+def create_remnawave(config: AppConfig) -> RemnawaveSDK:
+    return RemnawaveSDK(
+        base_url=config.remna.url.get_secret_value(),
+        token=config.remna.token.get_secret_value(),
+    )

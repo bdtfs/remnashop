@@ -3,6 +3,21 @@ from enum import Enum, StrEnum, auto
 from aiogram.types import BotCommand, ContentType
 
 
+class ByteUnit(StrEnum):
+    BYTE = "unit-bytes"
+    KILOBYTE = "unit-kilobytes"
+    MEGABYTE = "unit-megabytes"
+    GIGABYTE = "unit-gigabytes"
+    TERABYTE = "unit-terabytes"
+
+
+class TimeUnit(StrEnum):
+    SECOND = "unit-seconds"
+    MINUTE = "unit-minutes"
+    HOUR = "unit-hours"
+    DAY = "unit-days"
+
+
 class BannerFormat(StrEnum):
     JPG = auto()
     JPEG = auto()
@@ -24,6 +39,7 @@ class BannerFormat(StrEnum):
 class BannerName(StrEnum):
     DEFAULT = auto()
     MENU = auto()
+    DASHBOARD = auto()
 
 
 class UserRole(StrEnum):

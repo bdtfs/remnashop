@@ -14,8 +14,9 @@ class DashboardState(StatesGroup):
     banlist = State()
     maintenance = State()
 
-    # remnashop only dev
-    remnashop = State()
+
+class RemnashopState(StatesGroup):
+    main = State()
     admins = State()
     referral = State()
     ads = State()
@@ -23,5 +24,10 @@ class DashboardState(StatesGroup):
     notifications = State()
     logs = State()
 
-    # remnawave only dev
-    remnawave = State()
+
+class RemnawaveState(StatesGroup):
+    main = State()
+    users = State()
+    hosts = State()
+    nodes = State()
+    inbounds = State()

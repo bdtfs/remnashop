@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "3xui-shop"
+name = "remna-shop"
 version = "2.0.0"
 description = "This is a Telegram bot for selling VPN subscriptions. It works with Remnawave"
 authors = ["snoups"]
@@ -22,12 +22,8 @@ aiogram-i18n = "^1.4"
 fluent-runtime = "^0.4.0"
 msgspec = "^0.19.0"
 greenlet = "^3.2.2"
+remnawave-api = "^1.1.2"
 
-[tool.poetry.group.dev.dependencies]
-mypy = "^1.15.0"
-
-[tool.mypy]
-mypy_path = ["app"]
 
 [build-system]
 requires = ["poetry-core"]

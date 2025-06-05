@@ -8,7 +8,7 @@ from app.core.config import DEFAULT_BANNERS_DIR, AppConfig
 from app.core.constants import CONFIG_KEY
 from app.core.enums import BannerFormat, BannerName
 
-logger = logging.getLogger(__name__)  # FIX: not working in this file, but works in others
+logger = logging.getLogger(__name__)  # FIXME: not working in this file, but works in others
 
 
 class Banner(StaticMedia):

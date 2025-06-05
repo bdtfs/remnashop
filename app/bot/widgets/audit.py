@@ -6,7 +6,7 @@ from app.core.constants import AUDIT_KEY
 
 
 class Audit(Keyboard):
-    def __init__(self, button: Button):
+    def __init__(self, button: Button) -> None:
         super().__init__()
         self.button = button
 
@@ -19,5 +19,5 @@ class Audit(Keyboard):
         dialog: DialogProtocol,
         manager: DialogManager,
     ) -> bool:
-        # audit: Audit = manager.middleware_data[AUDIT_KEY] # TODO: Implement audit logging
+        # audit: Audit = manager.middleware_data[AUDIT_KEY] # TODO: implement audit logging
         return await self.button.process_callback(callback, dialog, manager)

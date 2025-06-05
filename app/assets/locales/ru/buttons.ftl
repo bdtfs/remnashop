@@ -1,3 +1,4 @@
+btn = Кнопка
 btn-back-menu = ⬅️ Вернуться в меню
 btn-back = ⬅️ Назад
 
@@ -54,3 +55,9 @@ btn-remnashop-plans = 📦 Планы
 btn-remnashop-notifications = 🔔 Уведомления
 btn-remnashop-logs = 📄 Логи
 btn-remnashop-audit = 🔍 Аудит
+
+# RemnaWave
+btn-remnawave-users = 👥 Пользователи
+btn-remnawave-hosts = 🌐 Хосты
+btn-remnawave-nodes = 🖥️ Ноды
+btn-remnawave-inbounds = 🔌 Инбаунды

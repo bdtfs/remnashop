@@ -14,6 +14,17 @@ class Values(Protocol):
         raise NotImplementedError
 
 
+def flatten_dict(data: dict[str, Any], parent_key: str = "", sep: str = "_") -> dict[str, Any]:
+    items = {}
+    for key, value in data.items():
+        new_key = f"{parent_key}{sep}{key}" if parent_key else key
+        if isinstance(value, dict):
+            items.update(flatten_dict(value, new_key, sep=sep))
+        else:
+            items[new_key] = value
+    return items
+
+
 def collapse_closing_tags(text: str) -> str:
     def replacer(match: Match) -> str:
         tag = match.group(1)
@@ -42,4 +53,4 @@ class I18nFormat(Text):
             I18N_FORMAT_KEY,
             default_format_text,
         )
-        return collapse_closing_tags(format_text(self.key, data))
+        return collapse_closing_tags(format_text(self.key, flatten_dict(data)))

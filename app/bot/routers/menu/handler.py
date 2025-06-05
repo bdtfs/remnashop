@@ -22,7 +22,7 @@ async def command_start_handler(
     dialog_manager: DialogManager,
 ) -> None:
     logger.info(f"[User:{user.telegram_id} ({user.name})] Opened menu")
-
+    print("asdasdasd")
     await dialog_manager.start(
         MenuState.main,
         mode=StartMode.RESET_STACK,

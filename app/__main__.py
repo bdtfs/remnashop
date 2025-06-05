@@ -11,7 +11,7 @@ from starlette.middleware.cors import CORSMiddleware
 from app.bot.commands import commands_delete, commands_setup
 from app.bot.webhook import webhook_shutdown, webhook_startup
 from app.core.config import AppConfig
-from app.core.constants import HEADER_SECRET_TOKEN
+from app.core.constants import BOT_KEY, HEADER_SECRET_TOKEN
 from app.core.logger import setup_logging
 from app.factories import create_bot, create_dispatcher
 
@@ -70,7 +70,7 @@ async def webhook(request: Request, update: Update) -> Optional[dict]:
         logger.error("Wrong secret token")
         return {"status": "error", "message": "Wrong secret token"}
 
-    update = Update.model_validate(await request.json(), context={"bot": bot})
+    update = Update.model_validate(await request.json(), context={BOT_KEY: bot})
     await dispatcher.feed_webhook_update(bot, update)
     return {"ok": True}
 

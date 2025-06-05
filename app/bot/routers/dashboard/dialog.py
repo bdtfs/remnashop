@@ -2,12 +2,14 @@ from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.kbd import Button, Row, Start, SwitchTo
 
 from app.bot.conditions import is_dev
-from app.bot.states import DashboardState, MenuState
-from app.bot.widgets import Audit, Banner, I18nFormat, IgnoreInput
+from app.bot.states import DashboardState, MenuState, RemnashopState
+from app.bot.widgets import Banner, I18nFormat, IgnoreInput
 from app.core.enums import BannerName
 
+from .remnawave.dialog import on_click
+
 dashboard = Window(
-    Banner(BannerName.DEFAULT),
+    Banner(BannerName.DASHBOARD),
     I18nFormat("msg-dashboard"),
     Row(
         SwitchTo(
@@ -41,15 +43,15 @@ dashboard = Window(
         ),
     ),
     Row(
-        SwitchTo(
+        Button(
             I18nFormat("btn-dashboard-remnawave"),
             id="dashboard.remnawave",
-            state=DashboardState.remnawave,
+            on_click=on_click,
         ),
-        SwitchTo(
+        Start(
             I18nFormat("btn-dashboard-remnashop"),
             id="dashboard.remnashop",
-            state=DashboardState.remnashop,
+            state=RemnashopState.main,
         ),
         when=is_dev,
     ),
@@ -247,76 +249,7 @@ maintenance = Window(
     state=DashboardState.maintenance,
 )
 
-remnawave = Window(
-    Banner(BannerName.DEFAULT),
-    I18nFormat("msg-dashboard-remnawave"),
-    Row(
-        SwitchTo(
-            I18nFormat("btn-back"),
-            id="back.dashboard",
-            state=DashboardState.main,
-        )
-    ),
-    IgnoreInput(),
-    state=DashboardState.remnawave,
-)
-
-remnashop = Window(
-    Banner(BannerName.DEFAULT),
-    I18nFormat("msg-dashboard-remnashop"),
-    Row(
-        SwitchTo(
-            I18nFormat("btn-remnashop-admins"),
-            id="remnashop.admins",
-            state=DashboardState.admins,
-        )
-    ),
-    Row(
-        SwitchTo(
-            I18nFormat("btn-remnashop-referral"),
-            id="remnashop.referral",
-            state=DashboardState.referral,
-        ),
-        SwitchTo(
-            I18nFormat("btn-remnashop-ads"),
-            id="remnashop.ads",
-            state=DashboardState.ads,
-        ),
-    ),
-    Row(
-        SwitchTo(
-            I18nFormat("btn-remnashop-plans"),
-            id="remnashop.plans",
-            state=DashboardState.plans,
-        ),
-        SwitchTo(
-            I18nFormat("btn-remnashop-notifications"),
-            id="remnashop.notifications",
-            state=DashboardState.notifications,
-        ),
-    ),
-    Row(
-        Button(
-            I18nFormat("btn-remnashop-logs"),
-            id="remnashop.logs",
-        ),
-        Button(
-            I18nFormat("btn-remnashop-audit"),
-            id="remnashop.audit",
-        ),
-    ),
-    Row(
-        SwitchTo(
-            I18nFormat("btn-back"),
-            id="back.dashboard",
-            state=DashboardState.main,
-        )
-    ),
-    IgnoreInput(),
-    state=DashboardState.remnashop,
-)
-
-dialog = Dialog(
+router = Dialog(
     dashboard,
     statistics,
     users,
@@ -324,6 +257,4 @@ dialog = Dialog(
     broadcast,
     promocodes,
     maintenance,
-    remnawave,
-    remnashop,
 )
