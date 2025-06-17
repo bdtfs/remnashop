@@ -1,34 +1,3 @@
-# Used to create a blank line between elements
-space = {"\u00A0"}
-
-# Units
-unit-bytes = Б
-unit-kilobytes = КБ
-unit-megabytes = МБ
-unit-gigabytes = ГБ
-unit-terabytes = ТБ
-
-unit-seconds = { $value ->
-    [one] секунда
-    [few] секунды
-    *[other] секунд
-}
-unit-minutes = { $value ->
-    [one] минута
-    [few] минуты
-    *[other] минут
-}
-unit-hours = { $value ->
-    [one] час
-    [few] часа
-    *[other] часов
-}
-unit-days = { $value ->
-    [one] день
-    [few] дня
-    *[other] дней
-}
-
 msg-plan-detail =
     <blockquote>
     { $type ->
@@ -43,84 +12,89 @@ msg-plan-detail =
 
 # Menu
 msg-menu-subscription =
-    <b>
-    💳 Подписка:
-    </b>
+    <b>💳 Подписка:</b>
     { $status ->
     [active]
     { $plan }
     [expired]
     <blockquote>
     • Срок действия истёк.
-    • Чтобы продлить нажмите кнопку "💳 Подписка"
+    • Чтобы продлить перейдите в меню "💳 Подписка"
     </blockquote>
     *[none]
     <blockquote>
     • У вас нет подписки
 
-    Для оформления подписки перейдите в меню "💳 Подписка"
+    Для оформления перейдите в меню "💳 Подписка"
     </blockquote>
     }
 
 msg-menu-profile =
-    <b>
-    👤 Профиль:
-    </b>
+    <b>👤 Профиль:</b>
     <blockquote>
     • ID: <code>{ $id }</code>
     • Имя: { $name }
-    • Баланс: { $balance }
     </blockquote>
 
 
 # Dashboard
 msg-dashboard = <b>🛠 Панель управления:</b>
 msg-dashboard-statistics = <b>📊 Статистика:</b>
-
 msg-dashboard-users = <b>👥 Пользователи:</b>
+msg-dashboard-broadcast = <b>📢 Рассылка:</b>
+msg-dashboard-promocodes = <b>🎟 Промокоды:</b>
+
+msg-dashboard-maintenance =
+    <b>🚧 Режим обслуживания:</b>
+    
+    Статус: { $status ->
+    [global] 🔴 Включен (глобальный)
+    [purchase] 🟠 Включен (платежи)
+    *[off] ⚪ Выключен
+    }
+
+# Users
+msg-users-search =
+    <b>🔍 Поиск пользователя:</b>
+
+    Введите ID пользователя или перешлите любое его сообщение
+
 msg-users-user = 
-    <b>
-    📝 Информация о пользователе:
-    </b>
+    <b>📝 Информация о пользователе:</b>
 
     👤 Профиль:
     <blockquote>
     • ID: <code>{ $id }</code>
     • Имя: { $name }
-    • Баланс: { $balance }
-    • Роль: { $role }
+    • Роль: { role }
     </blockquote>
 
     💳 Подписка:
     { $has_subscription ->
-    [true]
+    [True]
     { $plan }
-    *[false]
+    *[False]
     <blockquote>
     • Нет оформленной подписки
     </blockquote>
     }
 
-msg-dashboard-banlist = <b>🚫 Черный список:</b>
-msg-dashboard-broadcast = <b>📢 Рассылка:</b>
-msg-dashboard-promocodes = <b>🎟 Промокоды:</b>
+msg-users-user-role = <b>👮‍♂️ Изменить роль:</b>
 
-msg-dashboard-maintenance =
-    <b>
-    🚧 Режим обслуживания:
-    </b>
-    <blockquote>
-    { $status ->
-    [global] 🔴 Включен (глобальный)
-    [purchase] 🟠 Включен (платежи)
-    *[off] ⚪ Выключен
-    }
-    </blockquote>
+msg-users-blacklist =
+    <b>🚫 Черный список:</b>
 
+    Заблокировано: { $count_blocked } / { $count_users } ({ $percent }%)
+
+msg-users-unblock-all =
+    <b>🚫 Черный список:</b>
+
+    Вы уверены, что хотите разблокировать всех пользователей?
+
+
+# RemnaWave
 msg-remnawave =
-    <b>
-    🌊 RemnaWave:
-    </b>
+    <b>🌊 RemnaWave:</b>
     
     🖥️ Система:
     <blockquote>
@@ -138,9 +112,7 @@ msg-remnawave =
     </blockquote>
 
 msg-remnawave-users =
-    <b>
-    👥 Пользователи:
-    </b>
+    <b>👥 Пользователи:</b>
 
     📊 Статистика:
     <blockquote>
@@ -170,9 +142,7 @@ msg-remnawave-host-details =
     </blockquote>
 
 msg-remnawave-hosts =
-    <b>
-    🌐 Хосты:
-    </b>
+    <b>🌐 Хосты:</b>
     
     { $hosts }
 
@@ -189,9 +159,7 @@ msg-remnawave-node-details =
     </blockquote>
 
 msg-remnawave-nodes =
-    <b>
-    🖥️ Ноды:
-    </b>
+    <b>🖥️ Ноды:</b>
 
     { $nodes }
 
@@ -205,12 +173,11 @@ msg-remnawave-inbound-details =
     </blockquote>
 
 msg-remnawave-inbounds =
-    <b>
-    🔌 Инбаунды:
-    </b>
+    <b>🔌 Инбаунды:</b>
 
     { $inbounds }
 
 
+# RemnaShop
 msg-remnashop = <b>🛍 RemnaShop:</b>
-
+msg-remnashop-admins = <b>👮‍♂️ Администраторы:</b>

@@ -32,8 +32,8 @@ class Banner(StaticMedia):
         if not path.exists():
             raise FileNotFoundError(f"Default banner file not found: {path}")
 
-        def is_use_banners(data: dict, widget: Whenable, manager: DialogManager) -> bool:
-            container: AppContainer = manager.middleware_data.get(APP_CONTAINER_KEY)
+        def is_use_banners(data: dict, widget: Whenable, dialog_manager: DialogManager) -> bool:
+            container: AppContainer = dialog_manager.middleware_data.get(APP_CONTAINER_KEY)
             return container.config.bot.use_banners
 
         super().__init__(path=path, type=content_type, when=is_use_banners)

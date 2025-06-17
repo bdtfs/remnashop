@@ -1,6 +1,5 @@
-from . import dialog, getters
+from . import dialog
 
 __all__ = [
     "dialog",
-    "getters",
 ]

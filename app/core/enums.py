@@ -43,6 +43,7 @@ class BannerName(StrEnum):
 
 
 class UserRole(StrEnum):
+    DEV = auto()
     ADMIN = auto()
     USER = auto()
 

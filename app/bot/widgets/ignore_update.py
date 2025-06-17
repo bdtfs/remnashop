@@ -3,12 +3,13 @@ from aiogram_dialog import DialogManager, DialogProtocol, ShowMode
 from aiogram_dialog.widgets.input import BaseInput
 
 
-class IgnoreInput(BaseInput):
+class IgnoreUpdate(BaseInput):
+
     async def process_message(
         self,
         message: Message,
-        dialog: DialogProtocol,
-        manager: DialogManager,
+        dialog_protocol: DialogProtocol,
+        dialog_manager: DialogManager,
     ) -> bool:
-        manager.show_mode = ShowMode.NO_UPDATE
+        dialog_manager.show_mode = ShowMode.NO_UPDATE
         return True

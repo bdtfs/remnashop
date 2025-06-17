@@ -57,12 +57,16 @@ class I18nFormat(Text):
         self.key = key
         self.mapping = mapping
 
-    async def _transform(self, data: dict[str, Any], manager: DialogManager) -> dict[str, Any]:
+    async def _transform(
+        self,
+        data: dict[str, Any],
+        dialog_manager: DialogManager,
+    ) -> dict[str, Any]:
         mapped: dict[str, Any] = {}
 
         for key, transformer in self.mapping.items():
             if isinstance(transformer, TextWidget):
-                mapped[key] = await transformer.render_text(data, manager)
+                mapped[key] = await transformer.render_text(data, dialog_manager)
             elif isinstance(transformer, MagicFilter):
                 mapped[key] = transformer.resolve(data)
             else:
@@ -71,13 +75,13 @@ class I18nFormat(Text):
         logger.debug(f"Transformed mapping: {mapped}")
         return {**data, **mapped}
 
-    async def _render_text(self, data: dict[str, Any], manager: DialogManager) -> str:
-        format_value: I18nFormatter = manager.middleware_data.get(
+    async def _render_text(self, data: dict[str, Any], dialog_manager: DialogManager) -> str:
+        format_value: I18nFormatter = dialog_manager.middleware_data.get(
             I18N_FORMATTER_KEY,
             default_format_text,
         )
 
         if self.mapping:
-            data = await self._transform(data, manager)
+            data = await self._transform(data, dialog_manager)
 
         return collapse_closing_tags(text=format_value(self.key, data))

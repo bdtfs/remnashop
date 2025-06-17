@@ -23,7 +23,7 @@ class UserService(CrudService):
         self,
         aiogram_user: AiogramUser,
         i18n: I18nMiddleware,
-        is_dev: bool = False,
+        is_dev: bool = False,  # TODO: config in CrudService
     ) -> UserDto:
         async with SQLSessionContext(self.session_pool) as (repository, uow):
             db_user = User(
@@ -34,7 +34,7 @@ class UserService(CrudService):
                     if aiogram_user.language_code in i18n.locales
                     else i18n.default_locale
                 ),
-                role=UserRole.ADMIN if is_dev else UserRole.USER,
+                role=UserRole.DEV if is_dev else UserRole.USER,
             )
             await uow.commit(db_user)
         logger.info(f"[User:{db_user.telegram_id} ({db_user.name})] Created in database")
@@ -56,15 +56,54 @@ class UserService(CrudService):
         async with SQLSessionContext(self.session_pool) as (repository, uow):
             for key, value in data.items():
                 setattr(user, key, value)
-            db_user = await repository.users.update(**user.model_state)
+            db_user = await repository.users.update(
+                telegram_id=user.telegram_id,
+                **user.model_state,
+            )
             return db_user.dto() if db_user else None
+
+    async def count(self) -> int:
+        async with SQLSessionContext(session_pool=self.session_pool) as (repository, uow):
+            return await repository.users.count()
+
+    async def get_devs(self) -> list[UserDto]:
+        async with SQLSessionContext(self.session_pool) as (repository, uow):
+            devs = await repository.users.filter_by_role(UserRole.DEV)
+            return [dev.dto() for dev in devs]
+
+    async def get_admins(self) -> list[UserDto]:
+        async with SQLSessionContext(self.session_pool) as (repository, uow):
+            admins = await repository.users.filter_by_role(UserRole.ADMIN)
+            return [admin.dto() for admin in admins]
+
+    async def get_blocked_users(self) -> list[UserDto]:
+        async with SQLSessionContext(self.session_pool) as (repository, uow):
+            users = await repository.users.filter_by_blocked()
+            return [user.dto() for user in users]
+
+    async def set_block(self, user: UserDto, blocked: bool) -> None:
+        user.is_blocked = blocked
+        async with SQLSessionContext(self.session_pool) as (repository, uow):
+            await repository.users.update(
+                telegram_id=user.telegram_id,
+                **user.model_state,
+            )
+        logger.info(f"[User:{user.telegram_id} ({user.name})] Set is_blocked -> '{blocked}'")
 
     async def set_bot_blocked(self, user: UserDto, blocked: bool) -> None:
         user.is_bot_blocked = blocked
         async with SQLSessionContext(self.session_pool) as (repository, uow):
-            await repository.users.update(**user.model_state)
-        logger.info(f"[User:{user.telegram_id} ({user.name})] Set is_bot_blocked -> {blocked}")
+            await repository.users.update(
+                telegram_id=user.telegram_id,
+                **user.model_state,
+            )
+        logger.info(f"[User:{user.telegram_id} ({user.name})] Set is_bot_blocked -> '{blocked}'")
 
-    async def get_admins(self) -> list[User]:
+    async def set_role(self, user: UserDto, role: UserRole) -> None:
+        user.role = role
         async with SQLSessionContext(self.session_pool) as (repository, uow):
-            return await repository.users.filter_by_role(UserRole.ADMIN)
+            await repository.users.update(
+                telegram_id=user.telegram_id,
+                **user.model_state,
+            )
+        logger.info(f"[User:{user.telegram_id} ({user.name})] Set role -> '{role}'")

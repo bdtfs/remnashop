@@ -1,15 +1,14 @@
-from typing import Any
-
-from aiogram.types import CallbackQuery
-from aiogram_dialog import Dialog, DialogManager, Window
+from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.kbd import Button, Group, Row, Select, Start, SwitchTo
 from aiogram_dialog.widgets.text import Format
 
-from app.bot.states import DashboardState, RemnashopState
-from app.bot.widgets import Banner, I18nFormat, IgnoreInput
+from app.bot.routers.dashboard.users.handlers import on_user_selected
+from app.bot.states import Dashboard, DashboardRemnashop
+from app.bot.widgets import Banner, I18nFormat, IgnoreUpdate
 from app.core.enums import BannerName
 
 from .getters import admins_getter
+from .handlers import on_role_removed
 
 remnashop = Window(
     Banner(BannerName.DASHBOARD),
@@ -18,31 +17,31 @@ remnashop = Window(
         SwitchTo(
             I18nFormat("btn-remnashop-admins"),
             id="remnashop.admins",
-            state=RemnashopState.admins,
+            state=DashboardRemnashop.admins,
         )
     ),
     Row(
         SwitchTo(
             I18nFormat("btn-remnashop-referral"),
             id="remnashop.referral",
-            state=RemnashopState.referral,
+            state=DashboardRemnashop.referral,
         ),
         SwitchTo(
             I18nFormat("btn-remnashop-ads"),
             id="remnashop.ads",
-            state=RemnashopState.ads,
+            state=DashboardRemnashop.advertising,
         ),
     ),
     Row(
         SwitchTo(
             I18nFormat("btn-remnashop-plans"),
             id="remnashop.plans",
-            state=RemnashopState.plans,
+            state=DashboardRemnashop.plans,
         ),
         SwitchTo(
             I18nFormat("btn-remnashop-notifications"),
             id="remnashop.notifications",
-            state=RemnashopState.notifications,
+            state=DashboardRemnashop.notifications,
         ),
     ),
     Row(
@@ -59,30 +58,12 @@ remnashop = Window(
         Start(
             I18nFormat("btn-back"),
             id="back.dashboard",
-            state=DashboardState.main,
+            state=Dashboard.main,
         )
     ),
-    IgnoreInput(),
-    state=RemnashopState.main,
+    IgnoreUpdate(),
+    state=DashboardRemnashop.main,
 )
-
-
-async def on_admin_selected(
-    callback: CallbackQuery,
-    widget: Any,
-    manager: DialogManager,
-    selected_item: str,
-):
-    await callback.answer(f"Выбран админ: {selected_item}")
-
-
-async def on_admin_removed(
-    callback: CallbackQuery,
-    widget: Any,
-    manager: DialogManager,
-    selected_item: str,
-):
-    await callback.answer(f"Удалить админа: {selected_item}")
 
 
 admins = Window(
@@ -90,46 +71,32 @@ admins = Window(
     I18nFormat("msg-remnashop-admins"),
     Group(
         Select(
-            text=I18nFormat(
-                "btn-remnashop-admin",
-                role=Format("{item.role}"),
-                id=Format("{item.telegram_id}"),
-            ),
+            text=Format("{item.role} - {item.telegram_id}".capitalize()),
             id="select_admin",
             item_id_getter=lambda item: item.telegram_id,
             items="admins",
-            on_click=on_admin_selected,
+            type_factory=int,
+            on_click=on_user_selected,
         ),
         Select(
             text=Format("❌"),
             id="remove_admin",
             item_id_getter=lambda item: item.telegram_id,
             items="admins",
-            on_click=on_admin_removed,
+            type_factory=int,
+            on_click=on_role_removed,
         ),
         width=2,
     ),
-    # Select(
-    #     text=I18nFormat(
-    #         "btn-remnashop-admin",
-    #         role=Format("{item.role}"),
-    #         id=Format("{item.telegram_id}"),
-    #         name=Format("{item.name}"),
-    #     ),
-    #     id="remnashop.admin",
-    #     items="admins",
-    #     item_id_getter=lambda item: item.telegram_id,
-    #     on_click=on_admin_selected,
-    # ),
     Row(
         Start(
             I18nFormat("btn-back"),
             id="back.remnashop",
-            state=RemnashopState.main,
+            state=DashboardRemnashop.main,
         )
     ),
-    IgnoreInput(),
-    state=RemnashopState.admins,
+    IgnoreUpdate(),
+    state=DashboardRemnashop.admins,
     getter=admins_getter,
 )
 

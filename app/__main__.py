@@ -34,7 +34,7 @@ async def lifespan(application: FastAPI) -> AsyncGenerator[None, None]:
 
     await webhook_startup(bot, dispatcher, config)
     await commands_setup(bot, config)
-    yield
+    yield  # TODO: notify devs
     await commands_delete(bot, config)
     await webhook_shutdown(bot, config)
 

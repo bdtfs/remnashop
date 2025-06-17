@@ -8,7 +8,7 @@ TIMEZONE = timezone.utc
 UNLIMITED = "∞"
 
 # Resource file names for i18n
-RESOURCE_I18N = ["messages.ftl", "buttons.ftl", "notifications.ftl", "popups.ftl"]
+RESOURCE_I18N = ["messages.ftl", "buttons.ftl", "notifications.ftl", "popups.ftl", "utils.ftl"]
 
 # Keys for data
 MIDDLEWARE_DATA_KEY = "middleware_data"

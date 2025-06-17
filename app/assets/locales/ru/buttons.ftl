@@ -1,14 +1,16 @@
-btn = Кнопка
-btn-back-menu = ⬅️ Вернуться в меню
+# Back
 btn-back = ⬅️ Назад
+btn-back-menu = ⬅️ Вернуться в меню
+btn-back-dashboard = ⬅️ Вернуться в панель управления
+
 
 # Menu
-btn-menu-dashboard = 🛠 Панель управления
 btn-menu-connect = 🚀 Подключиться
-btn-menu-balance = 💰 Баланс
 btn-menu-subscription = 💳 Подписка
 btn-menu-invite = 👥 Пригласить
 btn-menu-support = 🆘 Поддержка
+btn-menu-dashboard = 🛠 Панель управления
+
 
 # Dashboard
 btn-dashboard-statistics = 📊 Статистика
@@ -19,14 +21,33 @@ btn-dashboard-maintenance = 🚧 Режим обслуживания
 btn-dashboard-remnawave = 🌊 RemnaWave
 btn-dashboard-remnashop = 🛍 RemnaShop
 
+
 # Users
 btn-users-search = 🔍 Поиск пользователя
 btn-users-recent-registered = 🆕 Последние зарегистрированные
 btn-users-recent-activity = 📝 Последние взаимодействующие
-btn-users-banlist = 🚫 Чёрный список
+btn-users-blacklist = 🚫 Чёрный список
 
-# Banlist
-btn-banlist-unblock-all = 🔓 Разблокировать всех
+
+# User
+btn-user-statistics = 📊 Статистика
+btn-user-message = 📩 Сообщение
+btn-user-change-role = 👮‍♂️ Изменить роль
+btn-user-transactions = 🧾 Транзакции
+btn-user-subscription = 💳 Подписка
+btn-user-role = { role }
+
+btn-user-block-toggle = 
+    { $is_blocked ->
+    [True] 🔓 Разблокировать
+    *[False] 🔒 Заблокировать
+}
+
+
+# Blacklist
+btn-blacklist-unblock-all = 🔓 Разблокировать всех
+btn-unblock-all-confirm = ✅ Подтвердить
+
 
 # Broadcast
 btn-broadcast-all = 👥 Всем
@@ -36,19 +57,22 @@ btn-broadcast-no-subscription = ❌ Без подписки
 btn-broadcast-expired = ⌛ Просроченным
 btn-broadcast-last-message = 🕒 Последняя рассылка
 
+
 # Promocodes
 btn-promocodes-list = 📃 Список промокодов
 btn-promocodes-create = 🆕 Создать
 btn-promocodes-delete = 🗑️ Удалить
 btn-promocodes-edit = ✏️ Изменить
 
+
 # Maintenance
 btn-maintenance-global = 🔴 Глобальный
 btn-maintenance-purchase = 🟠 Платежи
 btn-maintenance-off = ⚪ Выключить
 
+
 # RemnaShop
-btn-remnashop-admins = 👮 Администраторы
+btn-remnashop-admins = 👮‍♂️ Администраторы
 btn-remnashop-referral = 👥 Реферальная
 btn-remnashop-ads = 🎯 Реклама
 btn-remnashop-plans = 📦 Планы
@@ -56,7 +80,6 @@ btn-remnashop-notifications = 🔔 Уведомления
 btn-remnashop-logs = 📄 Логи
 btn-remnashop-audit = 🔍 Аудит
 
-btn-remnashop-admin = 👤 { $role } - { $id }
 
 # RemnaWave
 btn-remnawave-users = 👥 Пользователи

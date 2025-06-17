@@ -1,5 +1,5 @@
 from datetime import datetime
-from decimal import Decimal
+from decimal import ROUND_DOWN, Decimal
 
 from aiogram import html
 from aiogram.utils.link import create_tg_link
@@ -15,7 +15,6 @@ class UserDto(TrackableModel):
     name: str
     role: UserRole
     language: str
-    balance: Decimal
     personal_discount: float
     purchase_discount: float
     is_blocked: bool
@@ -31,3 +30,11 @@ class UserDto(TrackableModel):
     @property
     def mention(self) -> str:
         return html.link(value=self.name, link=self.url)
+
+    @property
+    def is_dev(self) -> bool:
+        return self.role == UserRole.DEV
+
+    @property
+    def is_admin(self) -> bool:
+        return self.role == UserRole.ADMIN

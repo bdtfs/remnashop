@@ -1,32 +1,60 @@
 from aiogram.fsm.state import State, StatesGroup
 
 
-class MenuState(StatesGroup):
+class MainMenu(StatesGroup):
     main = State()
 
 
-class DashboardState(StatesGroup):
+class Dashboard(StatesGroup):
     main = State()
     statistics = State()
-    users = State()
-    user = State()
-    broadcast = State()
-    promocodes = State()
-    banlist = State()
     maintenance = State()
 
 
-class RemnashopState(StatesGroup):
+class DashboardBroadcast(StatesGroup):
+    main = State()
+    to_all = State()
+    to_user = State()
+    subscribed = State()
+    unsubscribed = State()
+    expired = State()
+    last_sent = State()
+
+
+class DashboardPromocodes(StatesGroup):
+    main = State()
+    list = State()
+    create = State()
+    delete = State()
+    edit = State()
+
+
+class DashboardUsers(StatesGroup):
+    main = State()
+    search = State()
+    recent_registered = State()
+    recent_activity = State()
+    blacklist = State()
+    unblock_all = State()
+
+    user = State()
+    statistics = State()
+    role = State()
+    subscription = State()
+    transactions = State()
+
+
+class DashboardRemnashop(StatesGroup):
     main = State()
     admins = State()
     referral = State()
-    ads = State()
+    advertising = State()
     plans = State()
     notifications = State()
     logs = State()
 
 
-class RemnawaveState(StatesGroup):
+class DashboardRemnawave(StatesGroup):
     main = State()
     users = State()
     hosts = State()

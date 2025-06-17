@@ -1,8 +1,8 @@
-from . import dialog, handlers, remnashop, remnawave
+from . import dialog, remnashop, remnawave, users
 
 __all__ = [
     "dialog",
-    "handlers",
     "remnashop",
     "remnawave",
+    "users",
 ]

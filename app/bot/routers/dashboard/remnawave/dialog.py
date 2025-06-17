@@ -1,13 +1,10 @@
 import logging
 
-from aiogram.types import CallbackQuery
-from aiogram_dialog import Dialog, DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Row, Start, SwitchTo
+from aiogram_dialog import Dialog, Window
+from aiogram_dialog.widgets.kbd import Row, Start, SwitchTo
 
-from app.bot.models.containers import AppContainer
-from app.bot.states import DashboardState, RemnawaveState
-from app.bot.widgets import Banner, I18nFormat, IgnoreInput
-from app.core.constants import APP_CONTAINER_KEY
+from app.bot.states import Dashboard, DashboardRemnawave
+from app.bot.widgets import Banner, I18nFormat, IgnoreUpdate
 from app.core.enums import BannerName
 
 from .getters import (
@@ -21,26 +18,6 @@ from .getters import (
 logger = logging.getLogger(__name__)
 
 
-async def on_click(
-    callback: CallbackQuery,
-    button: Button,
-    dialog_manager: DialogManager,
-):
-    container: AppContainer = dialog_manager.middleware_data.get(APP_CONTAINER_KEY)
-
-    try:
-        response = await container.remnawave.system.get_stats()
-    except Exception as exception:
-        logger.error(f"Remnawave: {exception}")
-        # TODO: service notification
-        await callback.message.answer(f"Failed to connect to Remnawave. {response}")
-        return
-
-    await dialog_manager.start(
-        RemnawaveState.main,
-    )
-
-
 remnawave = Window(
     Banner(BannerName.DASHBOARD),
     I18nFormat("msg-remnawave"),
@@ -48,35 +25,35 @@ remnawave = Window(
         SwitchTo(
             I18nFormat("btn-remnawave-users"),
             id="remnawave.users",
-            state=RemnawaveState.users,
+            state=DashboardRemnawave.users,
         )
     ),
     Row(
         SwitchTo(
             I18nFormat("btn-remnawave-hosts"),
             id="remnawave.hosts",
-            state=RemnawaveState.hosts,
+            state=DashboardRemnawave.hosts,
         ),
         SwitchTo(
             I18nFormat("btn-remnawave-nodes"),
             id="remnawave.nodes",
-            state=RemnawaveState.nodes,
+            state=DashboardRemnawave.nodes,
         ),
         SwitchTo(
             I18nFormat("btn-remnawave-inbounds"),
             id="remnawave.inbounds",
-            state=RemnawaveState.inbounds,
+            state=DashboardRemnawave.inbounds,
         ),
     ),
     Row(
         Start(
             I18nFormat("btn-back"),
             id="back.dashboard",
-            state=DashboardState.main,
+            state=Dashboard.main,
         )
     ),
-    IgnoreInput(),
-    state=RemnawaveState.main,
+    IgnoreUpdate(),
+    state=DashboardRemnawave.main,
     getter=system_getter,
 )
 
@@ -87,11 +64,11 @@ users = Window(
         SwitchTo(
             I18nFormat("btn-back"),
             id="back.remnawave",
-            state=RemnawaveState.main,
+            state=DashboardRemnawave.main,
         )
     ),
-    IgnoreInput(),
-    state=RemnawaveState.users,
+    IgnoreUpdate(),
+    state=DashboardRemnawave.users,
     getter=users_getter,
 )
 
@@ -102,11 +79,11 @@ hosts = Window(
         SwitchTo(
             I18nFormat("btn-back"),
             id="back.remnawave",
-            state=RemnawaveState.main,
+            state=DashboardRemnawave.main,
         )
     ),
-    IgnoreInput(),
-    state=RemnawaveState.hosts,
+    IgnoreUpdate(),
+    state=DashboardRemnawave.hosts,
     getter=hosts_getter,
 )
 
@@ -117,11 +94,11 @@ nodes = Window(
         SwitchTo(
             I18nFormat("btn-back"),
             id="back.remnawave",
-            state=RemnawaveState.main,
+            state=DashboardRemnawave.main,
         )
     ),
-    IgnoreInput(),
-    state=RemnawaveState.nodes,
+    IgnoreUpdate(),
+    state=DashboardRemnawave.nodes,
     getter=nodes_getter,
 )
 
@@ -132,11 +109,11 @@ inbounds = Window(
         SwitchTo(
             I18nFormat("btn-back"),
             id="back.remnawave",
-            state=RemnawaveState.main,
+            state=DashboardRemnawave.main,
         )
     ),
-    IgnoreInput(),
-    state=RemnawaveState.inbounds,
+    IgnoreUpdate(),
+    state=DashboardRemnawave.inbounds,
     getter=inbounds_getter,
 )
 

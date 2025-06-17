@@ -1,13 +1,20 @@
-from aiogram_dialog import Dialog, DialogManager, Window
+from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.kbd import Button, Row, Start, SwitchTo
+from magic_filter import F
 
 from app.bot.conditions import is_dev
-from app.bot.states import DashboardState, MenuState, RemnashopState
-from app.bot.widgets import Banner, I18nFormat, IgnoreInput
+from app.bot.states import (
+    Dashboard,
+    DashboardBroadcast,
+    DashboardPromocodes,
+    DashboardRemnashop,
+    DashboardUsers,
+    MainMenu,
+)
+from app.bot.widgets import Banner, I18nFormat, IgnoreUpdate
 from app.core.enums import BannerName
-from app.db.models import UserDto
 
-from .remnawave.dialog import on_click
+from .remnawave.handlers import start_remnawave_window
 
 dashboard = Window(
     Banner(BannerName.DASHBOARD),
@@ -16,43 +23,43 @@ dashboard = Window(
         SwitchTo(
             I18nFormat("btn-dashboard-statistics"),
             id="dashboard.statistics",
-            state=DashboardState.statistics,
+            state=Dashboard.statistics,
         ),
-        SwitchTo(
+        Start(
             I18nFormat("btn-dashboard-users"),
             id="dashboard.users",
-            state=DashboardState.users,
+            state=DashboardUsers.main,
         ),
     ),
     Row(
-        SwitchTo(
+        Start(
             I18nFormat("btn-dashboard-broadcast"),
             id="dashboard.broadcast",
-            state=DashboardState.broadcast,
+            state=DashboardBroadcast.main,
         ),
-        SwitchTo(
+        Start(
             I18nFormat("btn-dashboard-promocodes"),
             id="dashboard.promocodes",
-            state=DashboardState.promocodes,
+            state=DashboardPromocodes.main,
         ),
     ),
     Row(
         SwitchTo(
             I18nFormat("btn-dashboard-maintenance"),
             id="dashboard.maintenance",
-            state=DashboardState.maintenance,
+            state=Dashboard.maintenance,
         ),
     ),
     Row(
         Button(
             I18nFormat("btn-dashboard-remnawave"),
             id="dashboard.remnawave",
-            on_click=on_click,
+            on_click=start_remnawave_window,
         ),
         Start(
             I18nFormat("btn-dashboard-remnashop"),
             id="dashboard.remnashop",
-            state=RemnashopState.main,
+            state=DashboardRemnashop.main,
         ),
         when=is_dev,
     ),
@@ -60,11 +67,11 @@ dashboard = Window(
         Start(
             I18nFormat("btn-back-menu"),
             id="back.menu",
-            state=MenuState.main,
-        )
+            state=MainMenu.main,
+        ),
     ),
-    IgnoreInput(),
-    state=DashboardState.main,
+    IgnoreUpdate(),
+    state=Dashboard.main,
 )
 
 statistics = Window(
@@ -74,217 +81,11 @@ statistics = Window(
         SwitchTo(
             I18nFormat("btn-back"),
             id="back.dashboard",
-            state=DashboardState.main,
-        )
-    ),
-    IgnoreInput(),
-    state=DashboardState.statistics,
-)
-
-users = Window(
-    Banner(BannerName.DASHBOARD),
-    I18nFormat("msg-dashboard-users"),
-    Row(
-        Button(
-            I18nFormat("btn-users-search"),
-            id="users.search",
-        )
-    ),
-    Row(
-        Button(
-            I18nFormat("btn-users-recent-registered"),
-            id="users.recent_registered",
-        )
-    ),
-    Row(
-        Button(
-            I18nFormat("btn-users-recent-activity"),
-            id="users.recent_activity",
-        )
-    ),
-    Row(
-        SwitchTo(
-            I18nFormat("btn-users-banlist"),
-            id="users.banlist",
-            state=DashboardState.banlist,
-        )
-    ),
-    Row(
-        SwitchTo(
-            I18nFormat("btn-back"),
-            id="back.dashboard",
-            state=DashboardState.main,
-        )
-    ),
-    IgnoreInput(),
-    state=DashboardState.users,
-)
-
-banlist = Window(
-    Banner(BannerName.DASHBOARD),
-    I18nFormat("msg-users-banlist"),
-    Row(
-        Button(
-            I18nFormat("btn-banlist-unblock-all"),
-            id="banlist.unblock_all",
-        )
-    ),
-    Row(
-        SwitchTo(
-            I18nFormat("btn-back"),
-            id="back.dashboard",
-            state=DashboardState.users,
-        )
-    ),
-    IgnoreInput(),
-    state=DashboardState.banlist,
-)
-
-
-async def user_getter(
-    dialog_manager: DialogManager,
-    **kwargs,
-) -> dict:
-    # user: UserDto = dialog_manager.start_data["find_user"]
-    # return {
-    #     "id": user.id,
-    #     "name": user.name,
-    #     "balance": user.balance,
-    #     "role": user.role,
-    # }
-    return dialog_manager.start_data
-
-
-user_detail = Window(
-    Banner(BannerName.DASHBOARD),
-    I18nFormat("msg-users-user"),
-    Row(
-        Button(
-            I18nFormat("btn-user-refresh"),
-            id="user.refresh",
-        )
-    ),
-    Row(
-        Button(
-            I18nFormat("btn-user-send-message"),
-            id="user.send_message",
-        )
-    ),
-    Row(
-        Button(
-            I18nFormat("btn-user-set-role"),
-            id="user.set_role",
-        )
-    ),
-    Row(
-        Button(
-            I18nFormat("btn-user-block"),
-            id="user.block",
-        )
-    ),
-    Row(
-        Button(
-            I18nFormat("btn-user-change-balance"),
-            id="user.change_balance",
-        )
-    ),
-    Row(
-        Button(
-            I18nFormat("btn-user-change-subscription"),
-            id="user.change_subscription",
-        )
-    ),
-    Row(
-        SwitchTo(
-            I18nFormat("btn-back"),
-            id="back.dashboard",
-            state=DashboardState.users,
-        )
-    ),
-    IgnoreInput(),
-    state=DashboardState.user,
-    getter=user_getter,
-)
-
-
-broadcast = Window(
-    Banner(BannerName.DASHBOARD),
-    I18nFormat("msg-dashboard-broadcast"),
-    Row(
-        Button(
-            I18nFormat("btn-broadcast-all"),
-            id="broadcast.all",
-        ),
-        Button(
-            I18nFormat("btn-broadcast-user"),
-            id="broadcast.user",
+            state=Dashboard.main,
         ),
     ),
-    Row(
-        Button(
-            I18nFormat("btn-broadcast-has-subscription"),
-            id="broadcast.has_subscription",
-        ),
-        Button(
-            I18nFormat("btn-broadcast-no-subscription"),
-            id="broadcast.no_subscription",
-        ),
-    ),
-    Row(
-        Button(
-            I18nFormat("btn-broadcast-expired"),
-            id="broadcast.expired",
-        )
-    ),
-    Row(
-        Button(
-            I18nFormat("btn-broadcast-last-message"),
-            id="broadcast.last",
-        )
-    ),
-    Row(
-        SwitchTo(
-            I18nFormat("btn-back"),
-            id="back.dashboard",
-            state=DashboardState.main,
-        )
-    ),
-    IgnoreInput(),
-    state=DashboardState.broadcast,
-)
-
-promocodes = Window(
-    Banner(BannerName.DASHBOARD),
-    I18nFormat("msg-dashboard-promocodes"),
-    Row(
-        Button(
-            I18nFormat("btn-promocodes-list"),
-            id="promocodes.list",
-        )
-    ),
-    Row(
-        Button(
-            I18nFormat("btn-promocodes-create"),
-            id="promocodes.create",
-        ),
-        Button(
-            I18nFormat("btn-promocodes-delete"),
-            id="promocodes.delete",
-        ),
-        Button(
-            I18nFormat("btn-promocodes-edit"),
-            id="promocodes.edit",
-        ),
-    ),
-    Row(
-        SwitchTo(
-            I18nFormat("btn-back"),
-            id="back.dashboard",
-            state=DashboardState.main,
-        )
-    ),
-    IgnoreInput(),
-    state=DashboardState.promocodes,
+    IgnoreUpdate(),
+    state=Dashboard.statistics,
 )
 
 maintenance = Window(
@@ -304,26 +105,21 @@ maintenance = Window(
         Button(
             I18nFormat("btn-maintenance-off"),
             id="maintenance.off",
-        )
+        ),
     ),
     Row(
         SwitchTo(
             I18nFormat("btn-back"),
             id="back.dashboard",
-            state=DashboardState.main,
-        )
+            state=Dashboard.main,
+        ),
     ),
-    IgnoreInput(),
-    state=DashboardState.maintenance,
+    IgnoreUpdate(),
+    state=Dashboard.maintenance,
 )
 
 router = Dialog(
     dashboard,
     statistics,
-    users,
-    user_detail,
-    banlist,
-    broadcast,
-    promocodes,
     maintenance,
 )

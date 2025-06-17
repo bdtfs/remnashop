@@ -1,11 +1,13 @@
 from . import dashboard, menu
-from .dashboard import remnashop, remnawave
+from .dashboard import broadcast, promocodes, remnashop, remnawave, users
 
 routers = [
     menu.handlers.router,  # NOTE: Must be registered first to handle common entrypoints before dialogs
-    dashboard.handlers.router,
     menu.dialog.router,
     dashboard.dialog.router,
+    users.dialog.router,
+    broadcast.dialog.router,
+    promocodes.dialog.router,
     remnashop.dialog.router,
     remnawave.dialog.router,
 ]

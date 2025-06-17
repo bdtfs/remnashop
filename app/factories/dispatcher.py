@@ -9,7 +9,7 @@ from aiogram.fsm.storage.redis import RedisStorage
 from aiogram_dialog import setup_dialogs
 from redis.asyncio import Redis
 
-from app.bot.filters import IsAdmin, IsPrivate
+from app.bot.filters import IsPrivate
 from app.bot.middlewares import (
     ErrorMiddleware,
     GarbageMiddleware,
@@ -69,7 +69,8 @@ def create_dispatcher(config: AppConfig) -> Dispatcher:
     )
 
     # request -> outer -> filter -> inner -> handler #
-    dispatcher.message.filter(IsPrivate(), IsAdmin())
+
+    dispatcher.message.filter(IsPrivate())
 
     error_middleware.setup_outer(router=dispatcher)
     user_middleware.setup_outer(router=dispatcher)

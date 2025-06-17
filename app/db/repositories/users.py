@@ -1,4 +1,7 @@
-from typing import Any, Optional
+from typing import Any, Optional, cast
+
+from sqlalchemy import select
+from sqlalchemy.sql.functions import count
 
 from app.core.enums import UserRole
 from app.db.models.sql import User
@@ -21,5 +24,11 @@ class UsersRepository(BaseRepository):
     async def delete(self, telegram_id: int) -> bool:
         return await self._delete(User, User.telegram_id == telegram_id)
 
+    async def count(self) -> int:
+        return cast(int, await self.session.scalar(select(count(User.id))))
+
     async def filter_by_role(self, role: UserRole) -> list[User]:
         return await self._get_many(User, User.role == role)
+
+    async def filter_by_blocked(self, blocked: bool = True) -> list[User]:
+        return await self._get_many(User, User.is_blocked == blocked)
