@@ -31,8 +31,7 @@ async def on_gateway_select(
     gateway = await payment_gateway_service.get(gateway_id)
 
     if not gateway:
-        logger.critical(f"{log(user)} Attempted to select non-existent gateway '{gateway_id}'")
-        return
+        raise ValueError(f"Attempted to select non-existent gateway '{gateway_id}'")
 
     logger.info(f"{log(user)} Gateway '{gateway_id}' selected")
 
@@ -60,8 +59,7 @@ async def on_gateway_test(
     gateway = await payment_gateway_service.get(gateway_id)
 
     if not gateway:
-        logger.critical(f"{log(user)} Attempted to test non-existent gateway '{gateway_id}'")
-        return
+        raise ValueError(f"Attempted to test non-existent gateway '{gateway_id}'")
 
     logger.info(f"{log(user)} Testing gateway '{gateway_id}'")
 
@@ -101,8 +99,7 @@ async def on_active_toggle(
     gateway = await payment_gateway_service.get(gateway_id)
 
     if not gateway:
-        logger.critical(f"{log(user)} Attempted to toggle non-existent gateway '{gateway_id}'")
-        return
+        raise ValueError(f"Attempted to toggle non-existent gateway '{gateway_id}'")
 
     if gateway.settings and not gateway.settings.is_configure:
         logger.warning(f"{log(user)} Gateway '{gateway_id}' is not configured")
@@ -153,9 +150,8 @@ async def on_field_input(
     gateway = await payment_gateway_service.get(gateway_id)
 
     if not gateway or not gateway.settings:
-        logger.error(f"{log(user)} Attempted update of non-existent gateway '{gateway_id}'")
         await dialog_manager.switch_to(state=RemnashopGateways.MAIN)
-        return
+        raise ValueError(f"Attempted update of non-existent gateway '{gateway_id}'")
 
     input_value = message.text
 

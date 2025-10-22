@@ -14,7 +14,7 @@ from .getters import (
     payment_method_getter,
     plans_getter,
     subscription_getter,
-    succees_payment_getter,
+    success_payment_getter,
 )
 from .handlers import (
     on_duration_select,
@@ -223,7 +223,7 @@ confirm = Window(
     getter=confirm_getter,
 )
 
-succees_payment = Window(
+success_payment = Window(
     Banner(BannerName.SUBSCRIPTION),
     I18nFormat("msg-subscription-success"),
     Row(
@@ -244,7 +244,7 @@ succees_payment = Window(
     ),
     IgnoreUpdate(),
     state=Subscription.SUCCESS,
-    getter=succees_payment_getter,
+    getter=success_payment_getter,
 )
 
 failed_payment = Window(
@@ -268,6 +268,6 @@ router = Dialog(
     duration,
     payment_method,
     confirm,
-    succees_payment,
+    success_payment,
     failed_payment,
 )

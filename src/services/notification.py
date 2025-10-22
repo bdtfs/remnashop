@@ -53,24 +53,23 @@ class NotificationService(BaseService):
         user: Optional[UserDto],
         payload: MessagePayload,
         ntf_type: Optional[UserNotificationType] = None,
-    ) -> bool:
+    ) -> Optional[Message]:
         if not user:
             logger.warning("Skipping user notification: user object is empty")
-            return False
+            return None
 
         if ntf_type and not await self.settings_service.is_notification_enabled(ntf_type):
             logger.debug(
                 f"Skipping user notification for '{user.telegram_id}': "
                 f"notification type is disabled in settings"
             )
-            return False
+            return None
 
         logger.debug(
             f"Attempting to send user notification '{payload.i18n_key}' to '{user.telegram_id}'"
         )
-        sent_message = await self._send_message(user, payload)
 
-        return bool(sent_message)
+        return await self._send_message(user, payload)
 
     async def system_notify(
         self,

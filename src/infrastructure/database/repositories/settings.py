@@ -1,5 +1,7 @@
 from typing import Any, Optional
 
+from loguru import logger
+
 from src.infrastructure.database.models.sql import Settings
 
 from .base import BaseRepository

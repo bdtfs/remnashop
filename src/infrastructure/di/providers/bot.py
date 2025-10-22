@@ -17,7 +17,7 @@ class BotProvider(Provider):
 
     @provide
     async def get_bot(self, config: AppConfig) -> AsyncIterable[Bot]:
-        logger.info("[BOT] Initializing Bot instance")
+        logger.debug("[BOT] Initializing Bot instance")
 
         async with Bot(
             token=config.bot.token.get_secret_value(),

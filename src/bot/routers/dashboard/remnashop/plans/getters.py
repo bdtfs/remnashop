@@ -102,7 +102,7 @@ async def durations_getter(dialog_manager: DialogManager, **kwargs: Any) -> dict
     plan = adapter.load(PlanDto)
 
     if not plan:
-        return {}
+        raise ValueError("PlanDto not found in dialog data")
 
     durations = [duration.model_dump() for duration in plan.durations]
     return {"durations": durations}
@@ -123,7 +123,7 @@ async def prices_getter(dialog_manager: DialogManager, **kwargs: Any) -> dict[st
     plan = adapter.load(PlanDto)
 
     if not plan:
-        return {}
+        raise ValueError("PlanDto not found in dialog data")
 
     duration_selected = dialog_manager.dialog_data["duration_selected"]
     prices = get_prices_for_duration(plan.durations, duration_selected)
@@ -149,7 +149,7 @@ async def allowed_users_getter(dialog_manager: DialogManager, **kwargs: Any) -> 
     plan = adapter.load(PlanDto)
 
     if not plan:
-        return {}
+        raise ValueError("PlanDto not found in dialog data")
 
     return {"allowed_users": plan.allowed_user_ids if plan.allowed_user_ids else []}
 
@@ -164,12 +164,12 @@ async def squads_getter(
     plan = adapter.load(PlanDto)
 
     if not plan:
-        return {}
+        raise ValueError("PlanDto not found in dialog data")
 
     response = await remnawave.internal_squads.get_internal_squads()
 
     if not isinstance(response, GetAllInternalSquadsResponseDto):
-        return {}
+        raise ValueError("Wrong response from Remnawave")
 
     existing_squad_uuids = {squad.uuid for squad in response.internal_squads}
 

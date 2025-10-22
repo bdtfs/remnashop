@@ -30,7 +30,7 @@ class I18nProvider(Provider):
                 config.default_locale,
             )
 
-        logger.info(
+        logger.debug(
             f"[I18N] Loaded TranslatorHub with locales: {list(locales_map.keys())}, "
             f"default={config.default_locale}"
         )

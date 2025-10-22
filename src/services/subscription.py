@@ -147,3 +147,9 @@ class SubscriptionService(BaseService):
 
         logger.debug(f"Retrieved {len(users)} users with trial subscription")
         return UserDto.from_model_list(users)
+
+    async def has_any_subscription(self, user: UserDto) -> bool:
+        count = await self.uow.repository.subscriptions._count(
+            Subscription, Subscription.user_telegram_id == user.telegram_id
+        )
+        return count > 0

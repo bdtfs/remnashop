@@ -25,6 +25,16 @@ class BaseRepository:
         await self.session.refresh(instance)
         return instance
 
+    async def create_instances(self, instances: list[T]) -> list[T]:
+        if not instances:
+            return []
+
+        self.session.add_all(instances)
+        await self.session.flush()
+        for instance in instances:
+            await self.session.refresh(instance)
+        return instances
+
     async def merge_instance(self, instance: T) -> T:
         return await self.session.merge(instance)
 

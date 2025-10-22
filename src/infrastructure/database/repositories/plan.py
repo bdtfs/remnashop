@@ -25,6 +25,9 @@ class PlanRepository(BaseRepository):
     async def delete(self, plan_id: int) -> bool:
         return bool(await self._delete(Plan, Plan.id == plan_id))
 
+    async def count(self) -> int:
+        return await self._count(Plan)
+
     async def filter_by_type(self, plan_type: PlanType) -> list[Plan]:
         return await self._get_many(Plan, Plan.type == plan_type)
 

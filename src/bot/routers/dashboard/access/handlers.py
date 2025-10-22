@@ -69,7 +69,7 @@ async def on_rules_input(
     input_text: str = message.text.strip() if message.text else ""
 
     if not _is_valid_url(input_text):
-        logger.warning(f"{log(user)} provided invalid rules link format: {input_text}")
+        logger.warning(f"{log(user)} Provided invalid rules link format: {input_text}")
         await notification_service.notify_user(
             user=user,
             payload=MessagePayload(i18n_key="ntf-access-wrong-link"),
@@ -80,7 +80,7 @@ async def on_rules_input(
     settings.rules_link = SecretStr(input_text)
     await settings_service.update(settings)
 
-    logger.info(f"{log(user)} successfully set rules link.")
+    logger.info(f"{log(user)} Successfully set rules link")
     await notification_service.notify_user(
         user=user,
         payload=MessagePayload(i18n_key="ntf-access-link-saved"),

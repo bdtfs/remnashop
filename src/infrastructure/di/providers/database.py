@@ -18,7 +18,7 @@ class DatabaseProvider(Provider):
 
     @provide
     async def get_engine(self, config: AppConfig) -> AsyncIterable[AsyncEngine]:
-        logger.info("[DB] Creating AsyncEngine")
+        logger.debug("[DB] Creating AsyncEngine")
         engine = create_async_engine(
             url=config.database.dsn,
             echo=config.database.echo,

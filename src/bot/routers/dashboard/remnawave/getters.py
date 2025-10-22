@@ -25,13 +25,12 @@ from src.core.utils.formatters import (
 async def system_getter(
     dialog_manager: DialogManager,
     remnawave: FromDishka[RemnawaveSDK],
-    i18n: FromDishka[TranslatorRunner],
     **kwargs: Any,
 ) -> dict[str, Any]:
     response = await remnawave.system.get_stats()
 
     if not isinstance(response, GetStatsResponseDto):
-        return {}
+        raise ValueError("Wrong response from Remnawave")
 
     return {
         "cpu_cores": response.cpu.physical_cores,
@@ -55,7 +54,7 @@ async def users_getter(
     response = await remnawave.system.get_stats()
 
     if not isinstance(response, GetStatsResponseDto):
-        return {}
+        raise ValueError("Wrong response from Remnawave")
 
     return {
         "users_total": str(response.users.total_users),
@@ -80,7 +79,7 @@ async def hosts_getter(
     response = await remnawave.hosts.get_all_hosts()
 
     if not isinstance(response, GetAllHostsResponseDto):
-        return {}
+        raise ValueError("Wrong response from Remnawave")
 
     hosts_text = "\n".join(
         i18n.get(
@@ -107,7 +106,7 @@ async def nodes_getter(
     response = await remnawave.nodes.get_all_nodes()
 
     if not isinstance(response, GetAllNodesResponseDto):
-        return {}
+        raise ValueError("Wrong response from Remnawave")
 
     nodes_text = []
 
@@ -149,7 +148,7 @@ async def inbounds_getter(
     response = await remnawave.inbounds.get_all_inbounds()
 
     if not isinstance(response, GetAllInboundsResponseDto):
-        return {}
+        raise ValueError("Wrong response from Remnawave")
 
     inbounds_text = "\n".join(
         i18n.get(

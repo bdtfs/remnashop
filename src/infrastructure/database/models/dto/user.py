@@ -3,9 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from .promocode import PromocodeActivationDto
     from .subscription import BaseSubscriptionDto
-    from .transaction import BaseTransactionDto
 
 from datetime import datetime
 
@@ -67,14 +65,3 @@ class BaseUserDto(TrackableDto):
 
 class UserDto(BaseUserDto):
     current_subscription: Optional["BaseSubscriptionDto"] = None
-    subscriptions: list["BaseSubscriptionDto"] = []
-    promocode_activations: list["PromocodeActivationDto"] = []
-    transactions: list["BaseTransactionDto"] = []
-
-    @property
-    def is_new(self) -> bool:
-        return len(self.subscriptions) == 0
-
-    @property
-    def is_existing(self) -> bool:
-        return len(self.subscriptions) > 0

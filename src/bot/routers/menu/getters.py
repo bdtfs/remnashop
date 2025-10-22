@@ -1,9 +1,7 @@
 from typing import Any
 
 from aiogram_dialog import DialogManager
-from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
-from remnawave import RemnawaveSDK
 
 from src.core.utils.formatters import (
     i18n_format_expire_time,
@@ -11,15 +9,12 @@ from src.core.utils.formatters import (
     i18n_format_traffic_limit,
 )
 from src.infrastructure.database.models.dto import UserDto
-from src.services.plan import PlanService
 
 
 @inject
 async def menu_getter(
     dialog_manager: DialogManager,
     user: UserDto,
-    remnawave: FromDishka[RemnawaveSDK],
-    plan_service: FromDishka[PlanService],
     **kwargs: Any,
 ) -> dict[str, Any]:
     if not user.current_subscription:

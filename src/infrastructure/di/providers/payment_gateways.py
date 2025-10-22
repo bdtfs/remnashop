@@ -21,6 +21,7 @@ GATEWAY_MAP: dict[PaymentGatewayType, Type[BasePaymentGateway]] = {
     # PaymentGatewayType.YOOMONEY: YoomoneyGateway,
     # PaymentGatewayType.CRYPTOMUS: CryptomusGateway,
     # PaymentGatewayType.HELEKET: HeleketGateway,
+    # PaymentGatewayType.URLPAY: UrlpayGateway,
 }
 
 

@@ -1,6 +1,7 @@
 from dishka import Provider, Scope, provide
 
 from src.services.access import AccessService
+from src.services.broadcast import BroadcastService
 from src.services.command import CommandService
 from src.services.notification import NotificationService
 from src.services.payment_gateway import PaymentGatewayService
@@ -29,3 +30,4 @@ class ServicesProvider(Provider):
     user_service = provide(source=UserService, scope=Scope.REQUEST)
     webhook_service = provide(source=WebhookService)
     settings_service = provide(source=SettingsService, scope=Scope.REQUEST)
+    broadcast_service = provide(source=BroadcastService, scope=Scope.REQUEST)

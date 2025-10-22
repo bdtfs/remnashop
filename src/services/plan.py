@@ -76,9 +76,14 @@ class PlanService(BaseService):
         logger.info(f"Deleted plan '{plan_id}': '{result}'")
         return result
 
+    async def count(self) -> int:
+        count = await self.uow.repository.plans.count()
+        logger.debug(f"Total plans count: '{count}'")
+        return count
+
     #
 
-    async def get_available_plans(self, user_dto: UserDto) -> list[PlanDto]:
+    async def get_available_plans(self, user_dto: UserDto, is_new_user: bool) -> list[PlanDto]:
         logger.debug(f"{log(user_dto)} Fetching available plans")
 
         db_plans: list[Plan] = await self.uow.repository.plans.filter_active(is_active=True)
@@ -88,9 +93,9 @@ class PlanService(BaseService):
             match db_plan.availability:
                 case PlanAvailability.ALL:
                     db_filtered_plans.append(db_plan)
-                case PlanAvailability.NEW if user_dto.is_new:
+                case PlanAvailability.NEW if is_new_user:
                     db_filtered_plans.append(db_plan)
-                case PlanAvailability.EXISTING if user_dto.is_existing:
+                case PlanAvailability.EXISTING if not is_new_user:
                     db_filtered_plans.append(db_plan)
                 # case PlanAvailability.INVITED if is_invited_user:
                 #     db_filtered_plans.append(db_plan)

@@ -13,13 +13,13 @@ class RedisProvider(Provider):
 
     @provide
     async def get_redis_client(self, config: AppConfig) -> AsyncGenerator[Redis, None]:
-        logger.info("[REDIS] Connecting to Redis")
+        logger.debug("[REDIS] Connecting to Redis")
         connection_pool = ConnectionPool.from_url(url=config.redis.dsn)
         client = Redis(connection_pool=connection_pool)
 
         try:
             await client.ping()
-            logger.info("[REDIS] Successfully connected to Redis")
+            logger.debug("[REDIS] Successfully connected to Redis")
         except Exception as exception:
             logger.error(f"[REDIS] Failed to connect to Redis: {exception}")
             raise

@@ -6,6 +6,7 @@ from dishka.integrations.aiogram_dialog import inject
 
 from src.bot.keyboards import goto_buttons
 from src.infrastructure.database.models.dto import PlanDto
+from src.services.broadcast import BroadcastService
 from src.services.plan import PlanService
 
 
@@ -20,6 +21,7 @@ async def plans_getter(
         {
             "id": plan.id,
             "name": plan.name,
+            "is_active": plan.is_active,
         }
         for plan in plans
     ]
@@ -42,7 +44,6 @@ async def send_getter(
     }
 
 
-@inject
 async def buttons_getter(
     dialog_manager: DialogManager,
     **kwargs: Any,
@@ -62,4 +63,52 @@ async def buttons_getter(
 
     return {
         "buttons": buttons,
+    }
+
+
+@inject
+async def list_getter(
+    dialog_manager: DialogManager,
+    broadcast_service: FromDishka[BroadcastService],
+    **kwargs: Any,
+) -> dict[str, Any]:
+    broadcasts = await broadcast_service.get_all()
+
+    formatted_broadcasts = [
+        {
+            **broadcast.model_dump(),
+            "created_at": broadcast.created_at.strftime("%d.%m.%Y %H:%M:%S"),  # type: ignore[union-attr]
+        }
+        for broadcast in broadcasts
+    ]
+
+    return {"broadcasts": formatted_broadcasts}
+
+
+@inject
+async def view_getter(
+    dialog_manager: DialogManager,
+    broadcast_service: FromDishka[BroadcastService],
+    **kwargs: Any,
+) -> dict[str, Any]:
+    task_id = dialog_manager.dialog_data.get("task_id")
+
+    if not task_id:
+        raise ValueError("Task ID not found in dialog data")
+
+    broadcast = await broadcast_service.get(task_id)
+
+    if not broadcast:
+        raise ValueError(f"Broadcast '{task_id}' not found")
+
+    dialog_manager.dialog_data["payload"] = broadcast.payload.model_dump()
+
+    return {
+        "id": str(broadcast.task_id),
+        "broadcast_status": broadcast.status,
+        "audience_type": broadcast.audience,
+        "created_at": broadcast.created_at.strftime("%d.%m.%Y %H:%M:%S"),  # type: ignore[union-attr]
+        "total_count": broadcast.total_count,
+        "success_count": broadcast.success_count,
+        "failed_count": broadcast.failed_count,
     }

@@ -138,3 +138,12 @@ audience-type = { $audience_type ->
     [TRIAL] С пробником
     *[OTHER] { $audience_type }
 }
+
+broadcast-status = { $broadcast_status ->
+    [PROCESSING] В процессе
+    [COMPLETED] Завершена
+    [CANCELED] Отменена
+    [DELETED] Удалена
+    [ERROR] Ошибка
+    *[OTHER] { $broadcast_status }
+}

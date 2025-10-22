@@ -10,7 +10,7 @@ class RemnawaveProvider(Provider):
 
     @provide
     def get_remnawave(self, config: AppConfig) -> RemnawaveSDK:
-        logger.info("[REMNAWAVE] Initializing RemnawaveSDK")
+        logger.debug("[REMNAWAVE] Initializing RemnawaveSDK")
 
         return RemnawaveSDK(
             base_url=config.remnawave.url.get_secret_value(),

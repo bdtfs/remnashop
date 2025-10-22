@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any
+from typing import Any, Union
 
 from aiogram.types import BufferedInputFile
 from dishka import FromDishka
@@ -48,7 +48,7 @@ async def send_remnashop_notification_task(
 @broker.task
 @inject
 async def send_error_notification_task(
-    error_id: int,
+    error_id: Union[str, int],
     traceback_str: str,
     i18n_kwargs: dict[str, Any],
     notification_service: FromDishka[NotificationService],

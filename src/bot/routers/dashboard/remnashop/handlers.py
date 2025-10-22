@@ -82,10 +82,7 @@ async def on_user_role_remove(
     target_user = await user_service.get(telegram_id=target_telegram_id)
 
     if not target_user:
-        logger.critical(
-            f"{log(user)} Attempted to remove role for non-existent user '{target_telegram_id}'"
-        )
-        return
+        raise ValueError(f"Attempted to remove role for non-existent user '{target_telegram_id}'")
 
     if await handle_role_switch_preconditions(user, target_user, sub_manager):
         logger.info(

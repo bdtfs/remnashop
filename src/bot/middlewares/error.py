@@ -4,7 +4,6 @@ from typing import Any, Awaitable, Callable, Optional, cast
 from aiogram.types import ErrorEvent, TelegramObject
 from aiogram.types import User as AiogramUser
 from aiogram.utils.formatting import Text
-from loguru import logger
 
 from src.core.enums import MiddlewareEventType
 from src.infrastructure.taskiq.tasks.notifications import send_error_notification_task
@@ -25,8 +24,6 @@ class ErrorMiddleware(EventTypedMiddleware):
         user_id = str(aiogram_user.id) if aiogram_user else None
         user_name = aiogram_user.full_name if aiogram_user else None
         error_event = cast(ErrorEvent, event)
-
-        logger.exception(f"Update: {error_event.update}\nException: {error_event.exception}")
 
         traceback_str = traceback.format_exc()
         error_type_name = type(error_event.exception).__name__

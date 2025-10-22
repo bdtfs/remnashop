@@ -24,10 +24,10 @@ async def on_test_command(
 ) -> None:
     logger.info(f"{log(user)} Test command executed")
 
-    logger.critical(user.transactions)
     logger.critical(user.current_subscription)
-    logger.critical(user.subscriptions)
-    logger.critical(user.promocode_activations)
+    # logger.critical(user.transactions)
+    # logger.critical(user.subscriptions)
+    # logger.critical(user.promocode_activations)
     # raise UnknownState("test_state")
     # raise UnknownIntent("test_intent")
 

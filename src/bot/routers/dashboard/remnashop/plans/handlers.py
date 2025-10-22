@@ -35,10 +35,7 @@ async def on_plan_select(
     plan: Optional[PlanDto] = await plan_service.get(plan_id=int(sub_manager.item_id))
 
     if not plan:
-        logger.critical(
-            f"{log(user)} Attempted to select non-existent plan '{sub_manager.item_id}'"
-        )
-        return
+        raise ValueError(f"Attempted to select non-existent plan '{sub_manager.item_id}'")
 
     logger.info(f"{log(user)} Selected plan ID '{plan.id}'")
 
@@ -117,8 +114,7 @@ async def on_name_input(
     plan = adapter.load(PlanDto)
 
     if not plan:
-        logger.critical("Failed to load PlanDto")
-        return
+        raise ValueError("PlanDto not found in dialog data")
 
     plan.name = message.text
     adapter.save(plan)
@@ -139,8 +135,7 @@ async def on_type_select(
     plan = adapter.load(PlanDto)
 
     if not plan:
-        logger.critical("Failed to load PlanDto")
-        return
+        raise ValueError("PlanDto not found in dialog data")
 
     if selected_type == PlanType.DEVICES and plan.device_limit == -1:
         plan.device_limit = 1
@@ -170,8 +165,7 @@ async def on_availability_select(
     plan = adapter.load(PlanDto)
 
     if not plan:
-        logger.critical("Failed to load PlanDto")
-        return
+        raise ValueError("PlanDto not found in dialog data")
 
     logger.debug(f"{log(user)} Selected plan availability '{selected_availability}'")
 
@@ -192,8 +186,7 @@ async def on_active_toggle(
     plan = adapter.load(PlanDto)
 
     if not plan:
-        logger.critical("Failed to load PlanDto")
-        return
+        raise ValueError("PlanDto not found in dialog data")
 
     logger.debug(f"{log(user)} Attempted to toggle plan active status")
 
@@ -226,8 +219,7 @@ async def on_traffic_input(
     plan = adapter.load(PlanDto)
 
     if not plan:
-        logger.critical("Failed to load PlanDto")
-        return
+        raise ValueError("PlanDto not found in dialog data")
 
     plan.traffic_limit = number
     adapter.save(plan)
@@ -260,8 +252,7 @@ async def on_devices_input(
     plan = adapter.load(PlanDto)
 
     if not plan:
-        logger.critical("Failed to load PlanDto")
-        return
+        raise ValueError("PlanDto not found in dialog data")
 
     plan.device_limit = number
     adapter.save(plan)
@@ -294,8 +285,7 @@ async def on_duration_remove(
     plan = adapter.load(PlanDto)
 
     if not plan:
-        logger.critical("Failed to load PlanDto")
-        return
+        raise ValueError("PlanDto not found in dialog data")
 
     duration_to_remove = int(sub_manager.item_id)
     new_durations = [d for d in plan.durations if d.days != duration_to_remove]
@@ -330,8 +320,7 @@ async def on_duration_input(
     plan = adapter.load(PlanDto)
 
     if not plan:
-        logger.critical("Failed to load PlanDto")
-        return
+        raise ValueError("PlanDto not found in dialog data")
 
     if plan.get_duration(number):
         logger.warning(f"{log(user)} Provided already existing duration")
@@ -394,8 +383,7 @@ async def on_price_input(
     currency_selected = dialog_manager.dialog_data.get("currency_selected")
 
     if not duration_selected or not currency_selected:
-        logger.critical(f"{log(user)} Missing duration or currency selection for price input")
-        return
+        raise ValueError("Missing duration or currency selection for price input")
 
     try:
         new_price = PricingService.parse_price(message.text, currency_selected)
@@ -411,8 +399,7 @@ async def on_price_input(
     plan = adapter.load(PlanDto)
 
     if not plan:
-        logger.critical("Failed to load PlanDto")
-        return
+        raise ValueError("PlanDto not found in dialog data")
 
     for duration in plan.durations:
         if duration.days == duration_selected:
@@ -454,8 +441,7 @@ async def on_allowed_user_input(
     plan = adapter.load(PlanDto)
 
     if not plan:
-        logger.critical("Failed to load PlanDto")
-        return
+        raise ValueError("PlanDto not found in dialog data")
 
     allowed_user = await user_service.get(telegram_id=int(message.text))
 
@@ -494,8 +480,7 @@ async def on_allowed_user_remove(
     plan = adapter.load(PlanDto)
 
     if not plan:
-        logger.critical("Failed to load PlanDto")
-        return
+        raise ValueError("PlanDto not found in dialog data")
 
     logger.info(f"{log(user)} Removed allowed user ID '{user_id}' from plan")
     plan.allowed_user_ids.remove(user_id)
@@ -515,8 +500,7 @@ async def on_squad_select(
     plan = adapter.load(PlanDto)
 
     if not plan:
-        logger.critical("Failed to load PlanDto")
-        return
+        raise ValueError("PlanDto not found in dialog data")
 
     if selected_squad in plan.squad_ids:
         plan.squad_ids.remove(selected_squad)
@@ -544,12 +528,11 @@ async def on_confirm_plan(
     plan_dto = adapter.load(PlanDto)
 
     if not plan_dto:
-        logger.error(f"{log(user)} Failed to load PlanDto for plan confirmation")
         await notification_service.notify_user(
             user=user,
             payload=MessagePayload(i18n_key="ntf-plan-save-error"),
         )
-        return
+        raise ValueError("PlanDto not found in dialog data")
 
     if plan_dto.type == PlanType.DEVICES:
         plan_dto.traffic_limit = -1

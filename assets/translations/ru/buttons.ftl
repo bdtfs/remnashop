@@ -75,6 +75,10 @@ btn-broadcast-content = ✉️ Редактировать контент
 btn-broadcast-buttons = ✳️ Редактировать кнопки
 btn-broadcast-preview = 👀 Предпросмотр
 btn-broadcast-confirm = ✅ Запустить рассылку
+btn-broadcast-refresh = 🔄 Обновить данные
+btn-broadcast-viewing = 👀 Просмотр
+btn-broadcast-cancel = ⛔ Остановить рассылку
+btn-broadcast-delete = ❌ Удалить отправленное
 
 btn-broadcast-button-select = { $selected ->
     [1] 🔘

@@ -55,14 +55,19 @@ class SettingsService(BaseService):
         return SettingsDto.from_model(db_settings)  # type: ignore[return-value]
 
     async def update(self, settings: SettingsDto) -> SettingsDto:
+        if settings.user_notifications.changed_data:
+            settings.user_notifications = settings.user_notifications  # FIXME: Fix this shit
+
+        if settings.system_notifications.changed_data:
+            settings.system_notifications = settings.system_notifications
+
         db_updated_settings = await self.uow.repository.settings.update(
             **settings.prepare_changed_data()
         )
         await self._clear_cache()
         logger.debug("Settings updated in DB")
 
-        a = SettingsDto.from_model(db_updated_settings)
-        return a  # type: ignore[return-value]
+        return SettingsDto.from_model(db_updated_settings)  # type: ignore[return-value]
 
     #
 

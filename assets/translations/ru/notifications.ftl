@@ -282,9 +282,22 @@ ntf-subscription-renew-plan-mismatch = <i>❌ Ваш план устарел и 
 ntf-subscription-payment-creation-failed = <i>❌ Произошла ошибка при создании платежа, попробуйте позже</i>
 
 ntf-broadcast-audience-not-available = <i>❌ Нет доступных пользователей для выбранной аудитории</i>
+ntf-broadcast-audience-not-active = <i>❌ Нет пользователей у которых есть АКТИВНАЯ подписка с данным планом</i>
 ntf-broadcast-plans-not-available = <i>❌ Нет доступных планов</i>
 ntf-broadcast-empty-content = <i>❌ Контент пустой.</i>
 ntf-broadcast-wrong-content = <i>❌ Некорректный контент</i>
 ntf-broadcast-content-saved = <i>✅ Контент сообщения успешно сохранен</i>
 ntf-broadcast-preview = { $content }
 ntf-broadcast-click-for-confirm = <i>⚠️ Нажмите еще раз, чтобы подтвердить рассылку</i>
+ntf-broadcast-not-cancelable = <i>❌ Рассылка не может быть отменена</i>
+ntf-broadcast-canceled = <i>✅ Рассылка успешно отменена</i>
+ntf-broadcast-deleting = <i>⚠️ Идет удаление всех отправленных сообщений</i>
+ntf-broadcast-already-deleted = <i>❌ Рассылка находится в процессе удаления или уже удалена</i>
+ntf-broadcast-deleted-success =
+    ✅ Рассылка <code>{ $task_id }</code> успешно удалена.
+
+    <blockquote>
+    • <b>Всего сообщений</b>: { $total_count }
+    • <b>Успешно удалено</b>: { $deleted_count }
+    • <b>Не удалось удалить</b>: { $failed_count }
+    </blockquote>

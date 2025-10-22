@@ -1,5 +1,6 @@
 from typing import Any, Iterable, Optional, Type, TypeVar
 
+from loguru import logger
 from pydantic import BaseModel as _BaseModel
 from pydantic import ConfigDict, PrivateAttr, SecretStr
 
@@ -72,8 +73,8 @@ class TrackableDto(BaseDto):
         if isinstance(value, TrackableDto):
             return (
                 value.prepare_init_data(encrypt)
-                if value is self
-                else value.prepare_changed_data(encrypt)
+                # if value is self
+                # else value.prepare_changed_data(encrypt)
             )
         return value
 

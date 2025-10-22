@@ -14,11 +14,11 @@ from src.core.utils.formatters import (
     i18n_format_limit,
     i18n_format_traffic_limit,
 )
-from src.infrastructure.database.models.dto import PlanDto, UserDto
-from src.infrastructure.database.models.dto.transaction import PriceDetailsDto
+from src.infrastructure.database.models.dto import PlanDto, PriceDetailsDto, UserDto
 from src.services.payment_gateway import PaymentGatewayService
 from src.services.plan import PlanService
 from src.services.settings import SettingsService
+from src.services.subscription import SubscriptionService
 
 
 @inject
@@ -36,11 +36,13 @@ async def subscription_getter(
 @inject
 async def plans_getter(
     dialog_manager: DialogManager,
+    subscription_service: FromDishka[SubscriptionService],
     plan_service: FromDishka[PlanService],
     **kwargs: Any,
 ) -> dict[str, Any]:
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
-    plans: list[PlanDto] = await plan_service.get_available_plans(user)
+    is_new_user = await subscription_service.has_any_subscription(user)
+    plans: list[PlanDto] = await plan_service.get_available_plans(user, is_new_user)
 
     formatted_plans = [
         {
@@ -66,7 +68,7 @@ async def duration_getter(
     plan = adapter.load(PlanDto)
 
     if not plan:
-        return {}
+        raise ValueError("PlanDto not found in dialog data")
 
     currency = await settings_service.get_default_currency()
     durations = []
@@ -106,14 +108,14 @@ async def payment_method_getter(
     plan = adapter.load(PlanDto)
 
     if not plan:
-        return {}
+        raise ValueError("PlanDto not found in dialog data")
 
     gateways = await payment_gateway_service.filter_active()
     selected_duration = dialog_manager.dialog_data["selected_duration"]
     duration = plan.get_duration(selected_duration)
 
     if not duration:
-        return {}
+        raise ValueError(f"Duration '{selected_duration}' not found in plan '{plan.name}'")
 
     payment_methods = []
     for gateway in gateways:
@@ -150,15 +152,18 @@ async def confirm_getter(
     plan = adapter.load(PlanDto)
 
     if not plan:
-        return {}
+        raise ValueError("PlanDto not found in dialog data")
 
     selected_duration = dialog_manager.dialog_data["selected_duration"]
     selected_payment_method = dialog_manager.dialog_data["selected_payment_method"]
     payment_gateway = await payment_gateway_service.get_by_type(selected_payment_method)
     duration = plan.get_duration(selected_duration)
 
-    if not duration or not payment_gateway:
-        return {}
+    if not duration:
+        raise ValueError(f"Duration '{selected_duration}' not found in plan '{plan.name}'")
+
+    if not payment_gateway:
+        raise ValueError(f"Not found PaymentGateway by selected type '{selected_payment_method}'")
 
     result_url = dialog_manager.dialog_data["payment_url"]
     pricing_data = dialog_manager.dialog_data["final_pricing"]
@@ -184,9 +189,8 @@ async def confirm_getter(
 
 
 @inject
-async def succees_payment_getter(
+async def success_payment_getter(
     dialog_manager: DialogManager,
-    plan_service: FromDishka[PlanService],
     **kwargs: Any,
 ) -> dict[str, Any]:
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
@@ -194,7 +198,7 @@ async def succees_payment_getter(
     purchase_type: PurchaseType = start_data["purchase_type"]
 
     if not user.current_subscription:
-        return {}
+        raise ValueError(f"User '{user.telegram_id}' has no active subscription after purchase")
 
     expiry_time = (
         i18n_format_limit(user.current_subscription.plan.duration)

@@ -20,7 +20,7 @@ async def user_getter(
     target_user = await user_service.get(telegram_id=target_telegram_id)
 
     if not target_user:
-        return {}
+        raise ValueError(f"User '{target_telegram_id}' not found")
 
     return {
         "id": str(target_user.telegram_id),
@@ -44,7 +44,7 @@ async def role_getter(
     target_user = await user_service.get(telegram_id=target_telegram_id)
 
     if not target_user:
-        return {}
+        raise ValueError(f"User '{target_telegram_id}' not found")
 
     roles = [role for role in UserRole if role != target_user.role]
     return {"roles": roles}

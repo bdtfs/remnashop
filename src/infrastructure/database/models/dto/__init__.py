@@ -1,4 +1,5 @@
 from .base import BaseDto, TrackableDto
+from .broadcast import BroadcastDto, BroadcastMessageDto
 from .payment_gateway import (
     AnyGatewaySettingsDto,
     CryptomusGatewaySettingsDto,
@@ -28,6 +29,8 @@ PaymentGatewayDto.model_rebuild()
 
 __all__ = [
     "BaseDto",
+    "BroadcastDto",
+    "BroadcastMessageDto",
     "TrackableDto",
     "AnyGatewaySettingsDto",
     "CryptomusGatewaySettingsDto",

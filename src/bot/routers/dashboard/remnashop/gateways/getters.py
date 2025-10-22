@@ -41,8 +41,11 @@ async def gateway_getter(
     gateway_id = dialog_manager.dialog_data["gateway_id"]
     gateway = await payment_gateway_service.get(gateway_id=gateway_id)
 
-    if not gateway or not gateway.settings:
-        return {}
+    if not gateway:
+        raise ValueError(f"Gateway '{gateway_id}' not found")
+
+    if not gateway.settings:
+        raise ValueError(f"Gateway '{gateway_id}' has not settings")
 
     return {
         "id": gateway.id,
@@ -64,8 +67,11 @@ async def field_getter(
 
     gateway = await payment_gateway_service.get(gateway_id=gateway_id)
 
-    if not gateway or not gateway.settings:
-        return {}
+    if not gateway:
+        raise ValueError(f"Gateway '{gateway_id}' not found")
+
+    if not gateway.settings:
+        raise ValueError(f"Gateway '{gateway_id}' has not settings")
 
     return {
         "gateway_type": gateway.type,

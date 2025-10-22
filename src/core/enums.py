@@ -11,6 +11,22 @@ class UpperStrEnum(StrEnum):
         return name
 
 
+class BroadcastStatus(UpperStrEnum):
+    PROCESSING = auto()
+    COMPLETED = auto()
+    CANCELED = auto()
+    DELETED = auto()
+    ERROR = auto()
+
+
+class BroadcastMessageStatus(UpperStrEnum):
+    SENT = auto()
+    FAILED = auto()
+    EDITED = auto()
+    DELETED = auto()
+    PENDING = auto()
+
+
 class BroadcastAudience(UpperStrEnum):
     ALL = auto()
     PLAN = auto()

@@ -100,10 +100,7 @@ async def on_block_toggle(
     target_user = await user_service.get(telegram_id=target_telegram_id)
 
     if not target_user:
-        logger.critical(
-            f"{log(user)} Attempted to toggle block for non-existent user '{target_telegram_id}'"
-        )
-        return
+        raise ValueError(f"Attempted to toggle block for non-existent user '{target_telegram_id}'")
 
     blocked = not target_user.is_blocked
 
@@ -136,7 +133,7 @@ async def on_block_toggle(
         )
         return
 
-    if user.role <= target_user.role:
+    if user.role != UserRole.DEV and user.role <= target_user.role:
         logger.warning(
             f"{log(user)} Attempted to block equal/higher role user ({log(target_user)})"
         )
@@ -169,10 +166,7 @@ async def on_role_select(
     target_user = await user_service.get(telegram_id=target_telegram_id)
 
     if not target_user:
-        logger.critical(
-            f"{log(user)} Attempted to change role for non-existent user '{target_telegram_id}'"
-        )
-        return
+        raise ValueError(f"Attempted to change role for non-existent user '{target_telegram_id}'")
 
     if await handle_role_switch_preconditions(user, target_user, dialog_manager):
         logger.info(

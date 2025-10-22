@@ -1,4 +1,5 @@
 from .base import BaseSql
+from .broadcast import Broadcast, BroadcastMessage
 from .payment_gateway import PaymentGateway
 from .plan import Plan, PlanDuration, PlanPrice
 from .promocode import Promocode, PromocodeActivation
@@ -9,6 +10,8 @@ from .user import User
 
 __all__ = [
     "BaseSql",
+    "Broadcast",
+    "BroadcastMessage",
     "PaymentGateway",
     "Plan",
     "PlanDuration",

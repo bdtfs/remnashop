@@ -65,7 +65,6 @@ class User(BaseSql, TimestampMixin):
         "Subscription",
         back_populates="user",
         cascade="all, delete-orphan",
-        lazy="selectin",
         primaryjoin="User.telegram_id==Subscription.user_telegram_id",
         foreign_keys="Subscription.user_telegram_id",
     )
@@ -73,11 +72,9 @@ class User(BaseSql, TimestampMixin):
         "PromocodeActivation",
         back_populates="user",
         cascade="all, delete-orphan",
-        lazy="joined",
     )
     transactions: Mapped[list["Transaction"]] = relationship(
         "Transaction",
         back_populates="user",
         cascade="all, delete-orphan",
-        lazy="joined",
     )

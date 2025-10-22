@@ -85,7 +85,21 @@ msg-broadcast-content =
 
 msg-broadcast-buttons = <b>✳️ Кнопки рассылки</b>
 
-msg-broadcast-view = <b>📢 Рассылка #{ $id }</b>
+msg-broadcast-view =
+    <b>📢 Рассылка</b>
+
+    <blockquote>
+    • <b>ID</b>: <code>{ $id }</code>
+    • <b>Статус</b>: { broadcast-status }
+    • <b>Аудитория</b>: { audience-type }
+    • <b>Создано</b>: { $created_at }
+    </blockquote>
+
+    <blockquote>
+    • <b>Всего сообщений</b>: { $total_count }
+    • <b>Успешных</b>: { $success_count }
+    • <b>Неудачных</b>: { $failed_count }
+    </blockquote>
 
 
 # Users

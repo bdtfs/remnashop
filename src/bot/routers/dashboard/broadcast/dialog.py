@@ -1,17 +1,23 @@
+from uuid import UUID
+
 from aiogram_dialog import Dialog, StartMode, Window
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, Column, ListGroup, Row, Select, Start, SwitchTo
+from aiogram_dialog.widgets.text import Format
 from magic_filter import F
 
 from src.bot.states import Dashboard, DashboardBroadcast
 from src.bot.widgets import Banner, I18nFormat, IgnoreUpdate
-from src.core.enums import BannerName, BroadcastAudience
+from src.core.enums import BannerName, BroadcastAudience, BroadcastStatus
 
-from .getters import buttons_getter, plans_getter, send_getter
+from .getters import buttons_getter, list_getter, plans_getter, send_getter, view_getter
 from .handlers import (
     on_audience_select,
+    on_broadcast_select,
     on_button_select,
+    on_cancel,
     on_content_input,
+    on_delete,
     on_plan_select,
     on_preview,
     on_send,
@@ -78,16 +84,27 @@ broadcast = Window(
 list = Window(
     Banner(BannerName.DASHBOARD),
     I18nFormat("msg-broadcast-list"),
-    # TODO: List of previous and current broadcasts with details
+    Column(
+        Select(
+            text=Format("{item[created_at]}"),
+            id="broadcast",
+            item_id_getter=lambda item: item["task_id"],
+            items="broadcasts",
+            type_factory=UUID,
+            on_click=on_broadcast_select,
+        ),
+    ),
     Row(
-        SwitchTo(
+        Start(
             I18nFormat("btn-back"),
             id="back",
             state=DashboardBroadcast.MAIN,
+            mode=StartMode.RESET_STACK,
         ),
     ),
     IgnoreUpdate(),
     state=DashboardBroadcast.LIST,
+    getter=list_getter,
 )
 
 view = Window(
@@ -95,13 +112,46 @@ view = Window(
     I18nFormat("msg-broadcast-view"),
     Row(
         SwitchTo(
+            I18nFormat("btn-broadcast-refresh"),
+            id="refresh",
+            state=DashboardBroadcast.VIEW,
+        ),
+    ),
+    Row(
+        Button(
+            I18nFormat("btn-broadcast-viewing"),
+            id="preview",
+            on_click=on_preview,
+        ),
+    ),
+    Row(
+        Button(
+            I18nFormat("btn-broadcast-cancel"),
+            id="cancel",
+            on_click=on_cancel,
+            when=F["broadcast_status"] == BroadcastStatus.PROCESSING,
+        ),
+    ),
+    Row(
+        Button(
+            I18nFormat("btn-broadcast-delete"),
+            id="delete",
+            on_click=on_delete,
+            when=F["broadcast_status"].in_(
+                [BroadcastStatus.COMPLETED, BroadcastStatus.CANCELED, BroadcastStatus.ERROR]
+            ),
+        ),
+    ),
+    Row(
+        SwitchTo(
             I18nFormat("btn-back"),
             id="back",
-            state=DashboardBroadcast.MAIN,
+            state=DashboardBroadcast.LIST,
         ),
     ),
     IgnoreUpdate(),
     state=DashboardBroadcast.VIEW,
+    getter=view_getter,
 )
 
 plan = Window(
@@ -227,6 +277,7 @@ buttons = Window(
 router = Dialog(
     broadcast,
     list,
+    view,
     plan,
     send,
     content,
