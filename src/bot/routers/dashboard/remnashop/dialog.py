@@ -1,6 +1,7 @@
 from aiogram_dialog import Dialog, StartMode, Window
 from aiogram_dialog.widgets.kbd import Button, ListGroup, Row, Start, SwitchTo
 from aiogram_dialog.widgets.text import Format
+from magic_filter import F
 
 from src.bot.routers.extra.test import show_dev_popup
 from src.bot.states import (
@@ -90,7 +91,7 @@ admins = Window(
     ListGroup(
         Row(
             Button(
-                text=Format("{item.telegram_id} ({item.name})"),
+                text=Format("{item[telegram_id]} ({item[name]})"),
                 id="select_user",
                 on_click=on_user_select,
             ),
@@ -98,10 +99,11 @@ admins = Window(
                 text=Format("❌"),
                 id="remove_role",
                 on_click=on_user_role_remove,
+                when=F["item"]["deletable"],
             ),
         ),
         id="admins_list",
-        item_id_getter=lambda item: item.telegram_id,
+        item_id_getter=lambda item: item["telegram_id"],
         items="admins",
     ),
     Row(

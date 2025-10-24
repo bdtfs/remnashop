@@ -38,6 +38,7 @@ user = Window(
             text=I18nFormat("btn-user-role"),
             id="role",
             state=DashboardUser.ROLE,
+            when=F["is_not_self"] & F["can_edit"],
         ),
     ),
     Row(
@@ -45,6 +46,7 @@ user = Window(
             text=I18nFormat("btn-user-block", is_blocked=F["is_blocked"]),
             id="block",
             on_click=on_block_toggle,
+            when=F["is_not_self"] & F["can_edit"],
         ),
     ),
     Row(

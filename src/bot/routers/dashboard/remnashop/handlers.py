@@ -5,10 +5,7 @@ from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 from loguru import logger
 
-from src.bot.routers.dashboard.users.user.handlers import (
-    handle_role_switch_preconditions,
-    start_user_window,
-)
+from src.bot.routers.dashboard.users.user.handlers import start_user_window
 from src.core.constants import LOG_DIR, USER_KEY
 from src.core.enums import MediaType, UserRole
 from src.core.logger import LOG_FILENAME
@@ -83,12 +80,6 @@ async def on_user_role_remove(
 
     if not target_user:
         raise ValueError(f"Attempted to remove role for non-existent user '{target_telegram_id}'")
-
-    if await handle_role_switch_preconditions(user, target_user, sub_manager):
-        logger.info(
-            f"{log(user)} Role removal for {log(target_user)} aborted due to pre-conditions"
-        )
-        return
 
     await user_service.set_role(user=target_user, role=UserRole.USER)
     await redirect_to_main_menu_task.kiq(target_user)

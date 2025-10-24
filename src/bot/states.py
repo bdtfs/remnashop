@@ -1,3 +1,5 @@
+from typing import Optional
+
 from aiogram.fsm.state import State, StatesGroup
 
 
@@ -117,3 +119,17 @@ class DashboardRemnawave(StatesGroup):
     HOSTS = State()
     NODES = State()
     INBOUNDS = State()
+
+
+def state_from_string(state_str: str, sep: str | None = ":") -> Optional[State]:
+    try:
+        group_name, state_name = state_str.split(":")
+        group_cls = globals().get(group_name)
+        if group_cls is None:
+            return None
+        state_obj = getattr(group_cls, state_name, None)
+        if not isinstance(state_obj, State):
+            return None
+        return state_obj
+    except (ValueError, AttributeError):
+        return None
