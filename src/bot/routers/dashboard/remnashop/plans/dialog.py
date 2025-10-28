@@ -60,6 +60,7 @@ plans = Window(
             id="statistics",
             # state=RemnashopPlans.STATISTICS,
             on_click=show_dev_popup,
+            when=F["plans"],
         ),
         SwitchTo(
             I18nFormat("btn-plans-create"),

@@ -14,6 +14,7 @@ class PaymentGateway(BaseSql):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
+    order_index: Mapped[int] = mapped_column(Integer, nullable=False)
     type: Mapped[PaymentGatewayType] = mapped_column(
         Enum(
             PaymentGatewayType,
@@ -24,7 +25,6 @@ class PaymentGateway(BaseSql):
         nullable=False,
         unique=True,
     )
-
     currency: Mapped[Currency] = mapped_column(
         Enum(
             Currency,
@@ -34,5 +34,6 @@ class PaymentGateway(BaseSql):
         ),
         nullable=False,
     )
+
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False)
     settings: Mapped[Optional[AnyGatewaySettingsDto]] = mapped_column(JSON, nullable=True)

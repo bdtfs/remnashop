@@ -34,10 +34,12 @@ def get_banner(
                 continue
 
             content_type = format.content_type
-            logger.debug(f"Found banner '{name}' in locale '{current_locale}': '{path}'")
+            logger.debug(f"[WIDGET] Found banner '{name}' in locale '{current_locale}': '{path}'")
             return path, content_type
 
-    logger.warning(f"Banner '{name}' not found in locales '{locale}' or '{default_locale}'")
+    logger.warning(
+        f"[WIDGET] Banner '{name}' not found in locales '{locale}' or '{default_locale}'"
+    )
     path = BANNERS_DIR / f"{BannerName.DEFAULT}.{BannerFormat.JPG}"
     content_type = BannerFormat.JPG.content_type
 

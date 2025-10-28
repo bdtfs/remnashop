@@ -41,7 +41,7 @@ class SettingsService(BaseService):
         db_settings = await self.uow.repository.settings.create(db_settings)
 
         await self._clear_cache()
-        logger.info("Default settings created in DB")
+        logger.info(f"{self.tag} Default settings created in DB")
         return SettingsDto.from_model(db_settings)  # type: ignore[return-value]
 
     @redis_cache(prefix="get_settings", ttl=TIME_10M)
@@ -50,7 +50,7 @@ class SettingsService(BaseService):
         if not db_settings:
             return await self.create()
         else:
-            logger.debug("Retrieved settings from DB")
+            logger.debug(f"{self.tag} Retrieved settings from DB")
 
         return SettingsDto.from_model(db_settings)  # type: ignore[return-value]
 
@@ -66,9 +66,11 @@ class SettingsService(BaseService):
         await self._clear_cache()
 
         if changed_data:
-            logger.info("Settings updated in DB")
+            logger.info(f"{self.tag} Settings updated in DB")
         else:
-            logger.warning("Settings update called, but no fields were actually changed")
+            logger.warning(
+                f"{self.tag} Settings update called, but no fields were actually changed"
+            )
 
         return SettingsDto.from_model(db_updated_settings)  # type: ignore[return-value]
 
@@ -87,28 +89,28 @@ class SettingsService(BaseService):
     async def get_access_mode(self) -> AccessMode:
         settings = await self.get()
         mode = settings.access_mode
-        logger.debug(f"Retrieved access mode '{mode}'")
+        logger.debug(f"{self.tag} Retrieved access mode '{mode}'")
         return mode
 
     async def set_access_mode(self, mode: AccessMode) -> None:
         settings = await self.get()
         settings.access_mode = mode
         await self.update(settings)
-        logger.debug(f"Set access mode '{mode}'")
+        logger.debug(f"{self.tag} Set access mode '{mode}'")
 
     #
 
     async def get_default_currency(self) -> Currency:
         settings = await self.get()
         currency = settings.default_currency
-        logger.debug(f"Retrieved default currency '{currency}'")
+        logger.debug(f"{self.tag} Retrieved default currency '{currency}'")
         return currency
 
     async def set_default_currency(self, currency: Currency) -> None:
         settings = await self.get()
         settings.default_currency = currency
         await self.update(settings)
-        logger.debug(f"Set default currency '{currency}'")
+        logger.debug(f"{self.tag} Set default currency '{currency}'")
 
     #
 
@@ -128,7 +130,7 @@ class SettingsService(BaseService):
             raise ValueError(f"Unknown notification type: {notification_type}")
 
         await self.update(settings)
-        logger.debug(f"Toggled notification '{field_name}' -> {new_value}")
+        logger.debug(f"{self.tag} Toggled notification '{field_name}' -> {new_value}")
         return new_value
 
     async def is_notification_enabled(self, ntf_type: AnyNotification) -> bool:
@@ -139,7 +141,7 @@ class SettingsService(BaseService):
         elif isinstance(ntf_type, SystemNotificationType):
             return settings.system_notifications.is_enabled(ntf_type)
         else:
-            logger.critical(f"Unknown notification type: {ntf_type}")
+            logger.critical(f"{self.tag} Unknown notification type: {ntf_type}")
             return False
 
     async def list_user_notifications(self) -> list[dict[str, Any]]:
@@ -166,5 +168,5 @@ class SettingsService(BaseService):
 
     async def _clear_cache(self) -> None:
         settings_cache_key: str = build_key("cache", "get_settings")
-        logger.debug(f"Cache {settings_cache_key} cleared")
+        logger.debug(f"{self.tag} Cache '{settings_cache_key}' cleared")
         await self.redis_client.delete(settings_cache_key)

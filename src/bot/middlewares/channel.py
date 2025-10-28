@@ -11,7 +11,6 @@ from loguru import logger
 from src.bot.keyboards import CALLBACK_CHANNEL_CONFIRM, get_channel_keyboard
 from src.core.constants import CONTAINER_KEY, USER_KEY
 from src.core.enums import MiddlewareEventType
-from src.core.utils.formatters import format_user_log as log
 from src.core.utils.message_payload import MessagePayload
 from src.infrastructure.database.models.dto import UserDto
 from src.infrastructure.taskiq.tasks.notifications import send_error_notification_task
@@ -44,7 +43,7 @@ class ChannelMiddleware(EventTypedMiddleware):
             return await handler(event, data)
 
         if user.is_privileged:
-            logger.debug(f"{log(user)} Privileged user skipped channel check")
+            logger.debug(f"{self.tag} User '{user.telegram_id}' skipped channel check (privileged)")
             return await handler(event, data)
 
         bot: Bot = await container.get(Bot)
@@ -68,8 +67,9 @@ class ChannelMiddleware(EventTypedMiddleware):
                 traceback_str=traceback_str,
                 i18n_kwargs={
                     "user": True,
-                    "id": str(user.telegram_id),
-                    "name": user.name,
+                    "user_id": str(user.telegram_id),
+                    "user_name": user.name,
+                    "username": user.username or False,
                     "error": f"{error_type_name}: Skipped channel '{channel_link}' "
                     + f"check due to error: {error_message.as_html()}",
                 },
@@ -80,7 +80,10 @@ class ChannelMiddleware(EventTypedMiddleware):
             if self._is_click_confirm(event):
                 await self._delete_channel_message(event)
 
-            logger.debug(f"{log(user)} Passed channel check. Status: {member.status.value}")
+            logger.debug(
+                f"{self.tag} User '{user.telegram_id}' "
+                f"passed channel check. Status: {member.status.value}"
+            )
             return await handler(event, data)
 
         if self._is_click_confirm(event):
@@ -94,7 +97,7 @@ class ChannelMiddleware(EventTypedMiddleware):
                     add_close_button=False,
                 ),
             )
-            logger.debug(f"{log(user)} Failed channel confirmation check")
+            logger.debug(f"{self.tag} User '{user.telegram_id}' failed channel check")
             return
 
         await notification_service.notify_user(
@@ -106,7 +109,8 @@ class ChannelMiddleware(EventTypedMiddleware):
                 add_close_button=False,
             ),
         )
-        logger.debug(f"{log(user)} Not subscribed channel")
+        logger.debug(f"{self.tag} User '{user.telegram_id}' is not subscribed to channel")
+
         return
 
     def _is_click_confirm(self, event: TelegramObject) -> bool:

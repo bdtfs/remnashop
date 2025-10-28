@@ -4,6 +4,7 @@ from aiogram import Bot
 from fluentogram import TranslatorHub
 from loguru import logger
 from redis.asyncio import Redis
+from sqlalchemy import and_
 
 from src.core.config import AppConfig
 from src.core.enums import SubscriptionStatus
@@ -47,30 +48,42 @@ class SubscriptionService(BaseService):
             subscription_id=db_created_subscription.id,
         )
         logger.info(
-            f"Created subscription '{db_created_subscription.id}' for user '{user.telegram_id}'"
+            f"{self.tag} Created subscription '{db_created_subscription.id}' "
+            f"for user '{user.telegram_id}'"
         )
         return SubscriptionDto.from_model(db_created_subscription)  # type: ignore[return-value]
+
+    async def get(self, subscription_id: int) -> Optional[SubscriptionDto]:
+        db_subscription = await self.uow.repository.subscriptions.get(subscription_id)
+
+        if db_subscription:
+            logger.debug(f"{self.tag} Retrieved subscription '{subscription_id}'")
+        else:
+            logger.warning(f"{self.tag} Subscription '{subscription_id}' not found")
+
+        return SubscriptionDto.from_model(db_subscription)
 
     async def get_current(self, telegram_id: int) -> Optional[SubscriptionDto]:
         db_user = await self.uow.repository.users.get(telegram_id)
 
-        if not db_user or not db_user.current_subscription:
+        if not db_user or not db_user.current_subscription_id:
             logger.debug(
-                f"Current subscription check: User '{telegram_id}' has no active subscription link"
+                f"{self.tag} Current subscription check: "
+                f"User '{telegram_id}' has no active subscription"
             )
             return None
 
-        subscription_id = db_user.current_subscription.id
+        subscription_id = db_user.current_subscription_id
         db_active_subscription = await self.uow.repository.subscriptions.get(subscription_id)
 
         if db_active_subscription:
             logger.debug(
-                f"Current subscription check: Subscription '{subscription_id}' "
+                f"{self.tag} Current subscription check: Subscription '{subscription_id}' "
                 f"retrieved for user '{telegram_id}'"
             )
         else:
             logger.warning(
-                f"CRITICAL: User '{telegram_id}' linked to subscription ID '{subscription_id}', "
+                f"{self.tag} User '{telegram_id}' linked to subscription ID '{subscription_id}', "
                 f"but subscription object was not found"
             )
 
@@ -78,18 +91,20 @@ class SubscriptionService(BaseService):
 
     async def get_all_by_user(self, telegram_id: int) -> list[SubscriptionDto]:
         db_subscriptions = await self.uow.repository.subscriptions.get_all_by_user(telegram_id)
-        logger.debug(f"Retrieved {len(db_subscriptions)} subscriptions for user '{telegram_id}'")
+        logger.debug(
+            f"{self.tag} Retrieved '{len(db_subscriptions)}' subscriptions for user '{telegram_id}'"
+        )
         return SubscriptionDto.from_model_list(db_subscriptions)
 
     async def get_all(self) -> list[SubscriptionDto]:
         db_subscription = await self.uow.repository.subscriptions.get_all()
-        logger.debug(f"Retrieved {len(db_subscription)} total subscriptions")
+        logger.debug(f"{self.tag} Retrieved '{len(db_subscription)}' total subscriptions")
         return SubscriptionDto.from_model_list(db_subscription)
 
     async def update(self, subscription: SubscriptionDto) -> Optional[SubscriptionDto]:
         data = subscription.changed_data.copy()
 
-        if "plan" in data:
+        if subscription.plan.changed_data or "plan" in data:
             data["plan"] = subscription.plan.model_dump(mode="json")
 
         db_updated_subscription = await self.uow.repository.subscriptions.update(
@@ -100,10 +115,10 @@ class SubscriptionService(BaseService):
         if db_updated_subscription:
             if subscription.user:
                 await self.user_service.clear_user_cache(telegram_id=subscription.user.telegram_id)
-            logger.info(f"Updated subscription '{subscription.id}' successfully")
+            logger.info(f"{self.tag} Updated subscription '{subscription.id}' successfully")
         else:
             logger.warning(
-                f"Attempted to update subscription '{subscription.id}', "
+                f"{self.tag} Attempted to update subscription '{subscription.id}', "
                 "but subscription was not found or update failed"
             )
 
@@ -112,7 +127,7 @@ class SubscriptionService(BaseService):
     async def get_subscribed_users(self) -> list[UserDto]:
         db_users = await self.uow.repository.users._get_many(User)
         users = [user for user in db_users if user.current_subscription]
-        logger.debug(f"Retrieved {len(users)} users with subscription")
+        logger.debug(f"{self.tag} Retrieved '{len(users)}' users with subscription")
         return UserDto.from_model_list(users)
 
     async def get_users_by_plan(self, plan_id: int) -> list[UserDto]:
@@ -120,19 +135,19 @@ class SubscriptionService(BaseService):
         active_subs = [s for s in db_subscriptions if s.status == SubscriptionStatus.ACTIVE]
 
         if not active_subs:
-            logger.debug(f"No active subscriptions found for plan_id={plan_id}")
+            logger.debug(f"{self.tag} No active subscriptions found for plan_id={plan_id}")
             return []
 
         user_ids = [sub.user_telegram_id for sub in active_subs]
         db_users = await self.uow.repository.users.get_by_ids(telegram_ids=user_ids)
         users = UserDto.from_model_list(db_users)
-        logger.debug(f"Retrieved {len(users)} users for active plan '{plan_id}'")
+        logger.debug(f"{self.tag} Retrieved '{len(users)}' users for active plan '{plan_id}'")
         return users
 
     async def get_unsubscribed_users(self) -> list[UserDto]:
         db_users = await self.uow.repository.users._get_many(User)
         users = [user for user in db_users if not user.current_subscription]
-        logger.debug(f"Retrieved {len(users)} users without subscription")
+        logger.debug(f"{self.tag} Retrieved '{len(users)}' users without subscription")
         return UserDto.from_model_list(users)
 
     async def get_expired_users(self) -> list[UserDto]:
@@ -145,7 +160,7 @@ class SubscriptionService(BaseService):
             and user.current_subscription.status == SubscriptionStatus.EXPIRED
         ]
 
-        logger.debug(f"Retrieved {len(users)} users with expired subscription")
+        logger.debug(f"{self.tag} Retrieved '{len(users)}' users with expired subscription")
         return UserDto.from_model_list(users)
 
     async def get_trial_users(self) -> list[UserDto]:
@@ -157,11 +172,21 @@ class SubscriptionService(BaseService):
             if user.current_subscription and user.current_subscription.is_trial
         ]
 
-        logger.debug(f"Retrieved {len(users)} users with trial subscription")
+        logger.debug(f"{self.tag} Retrieved '{len(users)}' users with trial subscription")
         return UserDto.from_model_list(users)
 
     async def has_any_subscription(self, user: UserDto) -> bool:
         count = await self.uow.repository.subscriptions._count(
             Subscription, Subscription.user_telegram_id == user.telegram_id
         )
+        return count > 0
+
+    async def has_used_trial(self, user: UserDto) -> bool:
+        conditions = and_(
+            Subscription.user_telegram_id == user.telegram_id,
+            Subscription.is_trial.is_(True),
+            Subscription.status != SubscriptionStatus.DELETED,
+        )
+
+        count = await self.uow.repository.subscriptions._count(Subscription, conditions)
         return count > 0

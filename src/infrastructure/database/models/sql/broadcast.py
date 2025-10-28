@@ -15,6 +15,7 @@ class Broadcast(BaseSql, TimestampMixin):
     __tablename__ = "broadcasts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+
     task_id: Mapped[UUID] = mapped_column(PG_UUID, nullable=False, unique=True)
 
     status: Mapped[BroadcastStatus] = mapped_column(
@@ -53,8 +54,11 @@ class BroadcastMessage(BaseSql):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
+    broadcast_id: Mapped[int] = mapped_column(ForeignKey("broadcasts.id"), nullable=False)
+
     user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     message_id: Mapped[int] = mapped_column(BigInteger, nullable=True)
+
     status: Mapped[BroadcastMessageStatus] = mapped_column(
         Enum(
             BroadcastMessageStatus,
@@ -64,7 +68,5 @@ class BroadcastMessage(BaseSql):
         ),
         nullable=False,
     )
-
-    broadcast_id: Mapped[int] = mapped_column(ForeignKey("broadcasts.id"), nullable=False)
 
     broadcast: Mapped["Broadcast"] = relationship(back_populates="messages")

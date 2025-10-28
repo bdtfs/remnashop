@@ -115,7 +115,7 @@ async def send_subscription_expire_notification_task(
 ) -> None:
     if not remna_user.telegram_id:
         logger.warning(
-            f"Skipping user notification for UUID {remna_user.uuid}: missing telegram_id"
+            f"[TASK] Skipping user notification for UUID {remna_user.uuid}: missing telegram_id"
         )
         return
 
@@ -157,7 +157,7 @@ async def send_subscription_limited_notification_task(
 ) -> None:
     if not remna_user.telegram_id:
         logger.warning(
-            f"Skipping user notification for UUID {remna_user.uuid}: missing telegram_id"
+            f"[TASK] Skipping user notification for UUID {remna_user.uuid}: missing telegram_id"
         )
         return
 

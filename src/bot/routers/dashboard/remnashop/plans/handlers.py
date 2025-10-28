@@ -268,7 +268,7 @@ async def on_duration_select(
     sub_manager: SubManager,
 ) -> None:
     user: UserDto = sub_manager.middleware_data[USER_KEY]
-    sub_manager.dialog_data["duration_selected"] = int(sub_manager.item_id)
+    sub_manager.dialog_data["selected_duration"] = int(sub_manager.item_id)
     logger.debug(f"{log(user)} Selected duration '{sub_manager.item_id}' days")
     await sub_manager.switch_to(state=RemnashopPlans.PRICES)
 
@@ -362,11 +362,11 @@ async def on_currency_select(
     callback: CallbackQuery,
     widget: Select[Currency],
     dialog_manager: DialogManager,
-    currency_selected: Currency,
+    selected_currency: Currency,
 ) -> None:
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
-    logger.info(f"{log(user)} Selected currency '{currency_selected}'")
-    dialog_manager.dialog_data["currency_selected"] = currency_selected.value
+    logger.info(f"{log(user)} Selected currency '{selected_currency}'")
+    dialog_manager.dialog_data["selected_currency"] = selected_currency.value
     await dialog_manager.switch_to(state=RemnashopPlans.PRICE)
 
 
@@ -376,6 +376,7 @@ async def on_price_input(
     widget: MessageInput,
     dialog_manager: DialogManager,
     notification_service: FromDishka[NotificationService],
+    pricing_service: FromDishka[PricingService],
 ) -> None:
     dialog_manager.show_mode = ShowMode.EDIT
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
@@ -389,14 +390,14 @@ async def on_price_input(
         )
         return
 
-    duration_selected = dialog_manager.dialog_data.get("duration_selected")
-    currency_selected = dialog_manager.dialog_data.get("currency_selected")
+    selected_duration = dialog_manager.dialog_data.get("selected_duration")
+    selected_currency = dialog_manager.dialog_data.get("selected_currency")
 
-    if not duration_selected or not currency_selected:
+    if not selected_duration or not selected_currency:
         raise ValueError("Missing duration or currency selection for price input")
 
     try:
-        new_price = PricingService.parse_price(message.text, currency_selected)
+        new_price = pricing_service.parse_price(message.text, selected_currency)
     except ValueError:
         logger.warning(f"{log(user)} Provided invalid price input: '{message.text}'")
         await notification_service.notify_user(
@@ -412,13 +413,13 @@ async def on_price_input(
         raise ValueError("PlanDto not found in dialog data")
 
     for duration in plan.durations:
-        if duration.days == duration_selected:
+        if duration.days == selected_duration:
             for price in duration.prices:
-                if price.currency == currency_selected:
+                if price.currency == selected_currency:
                     price.price = new_price
                     logger.info(
                         f"{log(user)} Updated price for duration '{duration.days}' "
-                        f"and currency '{currency_selected}' to '{new_price}'"
+                        f"and currency '{selected_currency}' to '{new_price}'"
                     )
                     break
             break
@@ -512,11 +513,11 @@ async def on_squad_select(
     if not plan:
         raise ValueError("PlanDto not found in dialog data")
 
-    if selected_squad in plan.squad_ids:
-        plan.squad_ids.remove(selected_squad)
+    if selected_squad in plan.internal_squads:
+        plan.internal_squads.remove(selected_squad)
         logger.info(f"{log(user)} Unset squad '{selected_squad}'")
     else:
-        plan.squad_ids.append(selected_squad)
+        plan.internal_squads.append(selected_squad)
         logger.info(f"{log(user)} Set squad '{selected_squad}'")
 
     adapter.save(plan)

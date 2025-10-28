@@ -1,19 +1,12 @@
 # Menu
-msg-subscription =
-    <blockquote>
-    • <b>Лимит трафика</b>: { $traffic_limit }
-    • <b>Лимит устройств</b>: { $device_limit }
-    • <b>Заканчивается через</b>: { $expiry_time }
-    </blockquote>
+msg-main-menu =
+    { hdr-user-profile }
+    { frg-user }
 
-msg-menu-subscription =
-    { $is_trial ->
-    [1] <b>💳 Пробная подписка:</b>
-    *[0] <b>💳 Подписка:</b>
-    }
+    { hdr-subscription }
     { $status ->
     [ACTIVE]
-    { msg-subscription }
+    { frg-subscription }
     [EXPIRED]
     <blockquote>
     • Срок действия истёк.
@@ -26,6 +19,12 @@ msg-menu-subscription =
 
     <i>Чтобы сбросить трафик, перейдите в меню «💳 Подписка»</i>
     </blockquote>
+    [DISABLED]
+    <blockquote>
+    • Ваша подписка отключена.
+
+    <i>Свяжитесь с техподдержкой для выяснения причины!</i>
+    </blockquote>
     *[NONE]
     <blockquote>
     • У вас нет оформленной подписки.
@@ -33,13 +32,6 @@ msg-menu-subscription =
     <i>Для оформления перейдите в меню «💳 Подписка»</i>
     </blockquote>
     }
-
-msg-menu-profile =
-    <b>👤 Профиль:</b>
-    <blockquote>
-    • <b>ID</b>: <code>{ $id }</code>
-    • <b>Имя</b>: { $name }
-    </blockquote>
 
 
 # Dashboard
@@ -62,12 +54,12 @@ msg-access-conditions =
 msg-access-rules =
     <b>✳️ Изменить ссылку на правила</b>
 
-    Введите ссылку
+    Введите ссылку (в формате https://telegram.org/tos)
 
 msg-access-channel =
     <b>❇️ Изменить ссылку на канал/группу</b>
 
-    Введите ссылку (в формате @channelusername)
+    Введите ссылку (в формате @username)
 
 
 # Broadcast
@@ -92,7 +84,7 @@ msg-broadcast-view =
     <b>📢 Рассылка</b>
 
     <blockquote>
-    • <b>ID</b>: <code>{ $id }</code>
+    • <b>ID</b>: <code>{ $broadcast_id }</code>
     • <b>Статус</b>: { broadcast-status }
     • <b>Аудитория</b>: { audience-type }
     • <b>Создано</b>: { $created_at }
@@ -106,6 +98,11 @@ msg-broadcast-view =
 
 
 # Users
+msg-users-recent-registered = <b>🆕 Последние зарегистрированные</b>
+msg-users-recent-activity = <b>📝 Последние взаимодействующие</b>
+msg-user-transactions = <b>🧾 Транзакции пользователя</b>
+msg-user-devices = <b>📱 Устройства пользователя ({ $current_count } / { $max_count })</b>
+
 msg-users-search =
     <b>🔍 Поиск пользователя</b>
 
@@ -123,39 +120,108 @@ msg-users-search-results =
     *[more] соответствующих
     } запросу
 
-msg-users-recent-registered = <b>🆕 Последние зарегистрированные</b>
-msg-users-recent-activity = <b>📝 Последние взаимодействующие</b>
+msg-user-main = 
+    <b>📝 Информация о пользователе</b>
 
-msg-user-subscription =
-    <b>💳 Подписка:</b>
+    { hdr-user-profile }
+    { frg-user-details }
+
+    <b>💸 Скидка:</b>
+    <blockquote>
+    • <b>Персональная</b>: { $personal_discount }%
+    • <b>На следующую покупку</b>: { $purchase_discount }%
+    </blockquote>
+    
+    { hdr-subscription }
     { $status ->
     [ACTIVE]
-    { $plan_details }
+    { frg-subscription }
     [EXPIRED]
     <blockquote>
     • Срок действия истёк.
     </blockquote>
+    [LIMITED]
+    <blockquote>
+    • Превышен лимит трафика.
+    </blockquote>
+    [DISABLED]
+    <blockquote>
+    • Подписка отключена.
+    </blockquote>
     *[NONE]
     <blockquote>
-    • Нет оформленной подписки.
+    • Нет текущей подписки.
     </blockquote>
     }
 
-msg-user-main = 
-    <b>📝 Информация о пользователе</b>
+msg-user-discount =
+    <b>💸 Изменить персональную скидку</b>
 
-    <b>👤 Профиль:</b>
+    Выберите по кнопке или введите свой вариант
+
+msg-user-subscription-traffic-limit =
+    <b>🌐 Изменить лимит трафика</b>
+
+    Выберите по кнопке или введите свой вариант (в ГБ), чтобы изменить лимит трафика
+
+msg-user-subscription-device-limit =
+    <b>📱 Изменить лимит устройств</b>
+
+    Выберите по кнопке или введите свой вариант, чтобы изменить лимит устройств
+
+msg-user-subscription-expire-time =
+    <b>⏳ Изменить срок действия</b>
+
+    Выберите по кнопке или введите свой вариант (в днях), чтобы добавить или отнять
+
+msg-user-subscription-squads =
+    <b>🔗 Изменить список сквадов</b>
+
+    Выберите, какие внутренние сквады будут доступны
+
+msg-user-subscription-info =
+    <b>💳 Информация о текущей подписке</b>
+    
+    { hdr-subscription }
+    { frg-subscription-details }
+
     <blockquote>
-    • <b>ID</b>: <code>{ $id }</code>
-    • <b>Имя</b>: { $name } { $username -> 
-        [0] { space }
-        *[has] (<a href="tg://user?id={ $id }">@{ $username }</a>)
+    • <b>Сквады</b>: { $squads -> 
+    [0] { empty }
+    *[HAS] { $squads }
     }
-    • <b>Роль</b>: { role }
+    • <b>Первое подключение</b>: { $first_connected_at -> 
+    [0] { empty }
+    *[HAS] { $first_connected_at }
+    }
+    • <b>Последнее подключение</b>: { $last_connected_at ->
+    [0] { empty }
+    *[HAS] { $last_connected_at } ({ $node_name })
+    } 
     </blockquote>
 
-    { msg-user-subscription }
+    { hdr-plan }
+    { frg-plan-snapshot }
 
+msg-user-transaction-info =
+    <b>🧾 Информация о транзакции</b>
+
+    { hdr-payment }
+    <blockquote>
+    • <b>ID</b>: <code>{ $payment_id }</code>
+    • <b>Статус</b>: { transaction-status }
+    • <b>Способ оплаты</b>: { gateway-type }
+    • <b>Сумма</b>: { frg-payment-amount }
+    • <b>Создано</b>: { $created_at }
+    </blockquote>
+
+    { $is_test -> 
+    [1] ⚠️ Тестовая транзакция
+    *[0]
+    { hdr-plan }
+    { frg-plan-snapshot }
+    }
+    
 msg-user-role = 
     <b>👮‍♂️ Изменить роль</b>
     
@@ -212,25 +278,20 @@ msg-remnawave-users =
     </blockquote>
 
 msg-remnawave-host-details =
-    { $remark } ({ $status ->
+    <b>{ $remark } ({ $status ->
     [ON] включен
     *[OFF] выключен
-    }):
+    }):</b>
     <blockquote>
     • <b>Адрес</b>: <code>{ $address }:{ $port }</code>
     • <b>Инбаунд</b>: <code>{ $inbound_uuid }</code>
     </blockquote>
 
-msg-remnawave-hosts =
-    <b>🌐 Хосты</b>
-    
-    { $hosts }
-
 msg-remnawave-node-details =
-    { $country } { $name } ({ $status ->
+    <b>{ $country } { $name } ({ $status ->
     [ON] подключено
     *[OFF] отключено
-    }):
+    }):</b>
     <blockquote>
     • <b>Адрес</b>: <code>{ $address }:{ $port }</code>
     • <b>Аптайм (xray)</b>: { $xray_uptime }
@@ -238,19 +299,24 @@ msg-remnawave-node-details =
     • <b>Трафик</b>: { $traffic_used } / { $traffic_limit }
     </blockquote>
 
-msg-remnawave-nodes =
-    <b>🖥️ Ноды</b>
-
-    { $nodes }
-
 msg-remnawave-inbound-details =
-    🔗 { $tag }
+    <b>🔗 { $tag }</b>
     <blockquote>
-    • <b>UUID</b>: <code>{ $uuid }</code>
+    • <b>ID</b>: <code>{ $inbound_id }</code>
     • <b>Протокол</b>: { $type } ({ $network })
     • <b>Порт</b>: { $port }
     • <b>Безопасность</b>: { $security } 
     </blockquote>
+
+msg-remnawave-hosts =
+    <b>🌐 Хосты</b>
+    
+    { $hosts }
+
+msg-remnawave-nodes =
+    <b>🖥️ Ноды</b>
+
+    { $nodes }
 
 msg-remnawave-inbounds =
     <b>🔌 Инбаунды</b>
@@ -266,13 +332,12 @@ msg-admins-main = <b>👮‍♂️ Администраторы</b>
 # Gateways
 msg-gateways-main = <b>🌐 Платежные системы</b>
 msg-gateways-settings = <b>🌐 { gateway-type }</b>
+msg-gateways-default-currency = <b>💸 Валюта по умолчанию</b>
 
 msg-gateways-field =
     <b>🌐 { gateway-type }</b>
 
     Введите новое значение для { $field }
-
-msg-gateways-default-currency = <b>💸 Валюта по умолчанию</b>
 
 
 # Plans
@@ -322,7 +387,7 @@ msg-plan-availability =
 msg-plan-traffic =
     <b>🌐 Изменить лимит трафика</b>
 
-    Введите новый лимит трафика плана
+    Введите новый лимит трафика плана (в ГБ)
 
 msg-plan-devices =
     <b>📱 Изменить лимит устройств</b>
@@ -337,7 +402,7 @@ msg-plan-durations =
 msg-plan-duration =
     <b>⏳ Добавить длительность плана</b>
 
-    Введите новую длительность в днях
+    Введите новую длительность (в днях)
 
 msg-plan-prices =
     <b>💰 Изменить цены длительности ({ $value ->
@@ -373,33 +438,25 @@ msg-notifications-system = <b>⚙️ Системные уведомления</
 
 
 # Subscription
-msg-subscription-duration-details =
-    { $period -> 
-    [0] {space}
-    *[has] • Длительность: <b>{ $period }</b>
-    }
-
-msg-subscription-price-details =
-    { $final_amount -> 
-    [0] {space}
-    *[has] • Стоимость: <b>{ $final_amount } { $currency }</b>
-        { $discount_percent -> 
-        [0] { space }
-        *[more] <strike>{ $original_amount } { $currency }</strike> ({ $discount_percent }%)
-        }
-    }
-
-msg-subscription-details =
-    <b>{ $plan }</b>
-    <blockquote>
-    • Лимит трафика: <b>{ $traffic }</b>
-    • Лимит устройств: <b>{ $devices }</b>
-    { msg-subscription-duration-details }
-    { msg-subscription-price-details }
-    </blockquote>
-
 msg-subscription-main = <b>💳 Подписка</b>
 msg-subscription-plans = <b>📦 Выберите план</b>
+msg-subscription-new-success = Чтобы начать пользоваться нашим сервисом, нажмите кнопку <code>`🔌 Подключиться`</code> и следуйте инструкциям!
+msg-subscription-renew-success = Ваша подписка продлена на { $added_duration }.
+
+msg-subscription-details =
+    <b>{ $plan }:</b>
+    <blockquote>
+    • <b>Лимит трафика</b>: { $traffic }
+    • <b>Лимит устройств</b>: { $devices }
+    { $period ->
+    [0] {space}
+    *[has] • <b>Длительность</b>: { $period }
+    }
+    { $final_amount ->
+    [0] {space}
+    *[has] • <b>Стоимость</b>: { frg-payment-amount }
+    }
+    </blockquote>
 
 msg-subscription-duration = 
     <b>⏳ Выберите длительность</b>
@@ -427,17 +484,15 @@ msg-subscription-success =
     { $purchase_type ->
     [NEW] { msg-subscription-new-success }
     [RENEW] { msg-subscription-renew-success }
-    *[CHANGE] { msg-subscription-change-success }
+    [CHANGE] { msg-subscription-change-success }
+    *[OTHER] { $purchase_type }
     }
-
-msg-subscription-new-success = Чтобы начать пользоваться нашим сервисом, нажмите кнопку <code>`🔌 Подключиться`</code> и следуйте инструкциям!
-msg-subscription-renew-success = Ваша подписка продлена на { $added_duration }.
 
 msg-subscription-change-success = 
     Ваша подписка была изменена.
 
     <b>{ $plan_name }</b>
-    { msg-subscription }
+    { frg-subscription }
 
 msg-subscription-failed = 
     <b>❌ Произошла ошибка!</b>

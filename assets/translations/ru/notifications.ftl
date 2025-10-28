@@ -10,14 +10,17 @@ ntf-event-error =
 
     <b>🔅 Событие: Произошла ошибка!</b>
 
-    <blockquote>
+    
     { $user -> 
-        [1]
-        • <b>Пользователь</b>: <code>{ $id }</code> ({ $name })
-        • <b>Ошибка</b>: { $error }
-        *[0] 
-        • <b>Ошибка</b>: { $error }
+    [1] 
+    { hdr-user }
+    { frg-user-info }
+    *[0] { separator }
     }
+
+    { hdr-error }
+    <blockquote>
+    { $error }
     </blockquote>
 
 ntf-event-error-webhook =
@@ -25,8 +28,9 @@ ntf-event-error-webhook =
 
     <b>🔅 Событие: Зафиксирована ошибка вебхука!</b>
 
+    { hdr-error }
     <blockquote>
-    • <b>Ошибка</b>: { $error }
+    { $error }
     </blockquote>
 
 ntf-event-bot-startup =
@@ -48,159 +52,118 @@ ntf-event-new-user =
 
     <b>🔅 Событие: Новый пользователь!</b>
 
-    <blockquote>
-    • <b>ID</b>: <code>{ $id }</code>
-    • <b>Имя</b>: { $name } { $username -> 
-        [0] { space }
-        *[has] (<a href="tg://user?id={ $id }">@{ $username }</a>)
-    }
-    </blockquote>
-
-ntf-event-payment-info-amount =
-    { $final_amount } { $currency } { $discount_percent -> 
-    [0] { space }
-    *[more] <strike>{ $original_amount } { $currency }</strike> ({ $discount_percent }%)
-    }
-
-ntf-event-payment-info =
-    <blockquote>
-    • <b>ID</b>: <code>{ $payment_id }</code>
-    • <b>Способ оплаты</b>: { gateway-type }
-    • <b>Сумма</b>: { ntf-event-payment-info-amount }
-    </blockquote>
-
-    <blockquote>
-    • <b>ID</b>: <code>{ $user_id }</code>
-    • <b>Имя</b>: { $user_name } { $user_username -> 
-        [0] { space }
-        *[has] (<a href="tg://user?id={ $user_id }">@{ $user_username }</a>)
-    }
-    </blockquote>
-
-ntf-event-trial-info =
-    <blockquote>
-    • <b>ID</b>: <code>{ $user_id }</code>
-    • <b>Имя</b>: { $user_name } { $user_username -> 
-        [0] { space }
-        *[has] (<a href="tg://user?id={ $user_id }">@{ $user_username }</a>)
-    }
-    </blockquote>
-
-ntf-event-payment-info-plan =
-    <blockquote>
-    • <b>План</b>: <code>{ $plan_name }</code>
-    • <b>Тип</b>: { plan-type }
-    • <b>Лимит трафика</b>: { $plan_traffic_limit }
-    • <b>Лимит устройств</b>: { $plan_device_limit }
-    • <b>Длительность</b>: { $plan_duration }
-    </blockquote>
-
-ntf-event-payment-info-previous-plan =
-    <blockquote>
-    • <b>План</b>: <code>{ $previous_plan_name }</code> -> <code>{ $plan_name }</code>
-    • <b>Тип</b>: { $previous_plan_type } -> { plan-type }
-    • <b>Лимит трафика</b>: { $previous_plan_traffic_limit } -> { $plan_traffic_limit }
-    • <b>Лимит устройств</b>: { $previous_plan_device_limit } -> { $plan_device_limit }
-    • <b>Длительность</b>: { $previous_plan_duration } -> { $plan_duration }
-    </blockquote>
+    { hdr-user }
+    { frg-user-info }
 
 ntf-event-subscription-trial =
     #EventTrialGetted
 
     <b>🔅 Событие: Получение пробной подписки!</b>
 
-    { ntf-event-trial-info }
-
-    { ntf-event-payment-info-plan }
+    { hdr-user }
+    { frg-user-info }
+    
+    { hdr-plan }
+    { frg-plan-snapshot }
 
 ntf-event-subscription-new =
     #EventSubscriptionNew
 
     <b>🔅 Событие: Покупка подписки!</b>
 
-    { ntf-event-payment-info }
+    { hdr-payment }
+    { frg-payment-info }
 
-    { ntf-event-payment-info-plan }
+    { hdr-user }
+    { frg-user-info }
+
+    { hdr-plan }
+    { frg-plan-snapshot }
 
 ntf-event-subscription-renew =
     #EventSubscriptionRenew
 
     <b>🔅 Событие: Продление подписки!</b>
+    
+    { hdr-payment }
+    { frg-payment-info }
 
-    { ntf-event-payment-info }
+    { hdr-user }
+    { frg-user-info }
 
-    { ntf-event-payment-info-plan }
+    { hdr-plan }
+    { frg-plan-snapshot }
 
 ntf-event-subscription-change =
     #EventSubscriptionChange
 
     <b>🔅 Событие: Изменение подписки!</b>
 
-    { ntf-event-payment-info }
+    { hdr-payment }
+    { frg-payment-info }
 
-    { ntf-event-payment-info-previous-plan }
+    { hdr-user }
+    { frg-user-info }
 
-ntf-event-node-info =
-    <blockquote>
-    • <b>Название</b>: { $country } { $name }
-    • <b>Адрес</b>: <code>{ $address }:{ $port }</code>
-    • <b>Трафик</b>: { $traffic_used } / { $traffic_limit }
-    • <b>Последний статус</b>: { $last_status_message }
-    • <b>Статус изменен</b>: { $last_status_change }
-    </blockquote>
+    { hdr-plan }
+    { frg-plan-snapshot-comparison }
 
 ntf-event-node-connection-lost =
     #EventNode
 
     <b>🔅 Событие: Соединение с узлом потеряно!</b>
 
-    { ntf-event-node-info }
+    { hdr-node }
+    { frg-node-info }
 
 ntf-event-node-connection-restored =
     #EventNode
 
     <b>🔅 Событие: Cоединение с узлом восстановлено!</b>
 
-    { ntf-event-node-info }
+    { hdr-node }
+    { frg-node-info }
 
 ntf-event-node-traffic =
     #EventNode
 
     <b>🔅 Событие: Узел достиг порога лимита трафика!</b>
 
-    { ntf-event-node-info }
-
-ntf-event-user-info =
-    <blockquote>
-    • <b>UUID</b>: <code>{ $uuid }</code>
-    • <b>ID</b>: <code>{ $telegram_id }</code>
-    • <b>Статус</b>: { $status }
-
-    • <b>Трафик</b>: { $traffic_used } / { $traffic_limit }
-    • <b>Лимит устройств</b>: { $device_limit }
-    • <b>Заканчивается</b>: { $expire_at }
-    </blockquote>
+    { hdr-node }
+    { frg-node-info }
 
 # ntf-event-user-sync =
 #     #EventUser
 
 #     <b>🔅 Событие: Синхронизация пользователя!</b>
 
-#     { ntf-event-user-info }
+#     { hdr-user }
+#     { frg-user-info }
+
+#     { hdr-subscription }
+#     { frg-subscription-details }
 
 # ntf-event-user-deleted =
 #     #EventUser
 
 #     <b>🔅 Событие: Пользователь удален из панели!</b>
 
-#     { ntf-event-user-info }
+#     { hdr-user }
+#     { frg-user-info }
+
+#     { hdr-subscription }
+#     { frg-subscription-details }
 
 ntf-event-user-first-connected =
     #EventUser
 
     <b>🔅 Событие: Первое подключение пользователя!</b>
 
-    { ntf-event-user-info }
+    { hdr-user }
+    { frg-user-info }
+
+    { hdr-subscription }
+    { frg-subscription-details }
 
 ntf-event-user-expiring =
     <b>⚠️ Внимание! Ваша подписка истекает через { unit-day }.</b>
@@ -215,30 +178,27 @@ ntf-event-user-limited =
 
     Вы исчерпали лимит трафика, продлите подписку, чтобы продолжить пользоваться VPN!
 
-ntf-event-user-hwid =
-    <blockquote>
-    • <b>UUID</b>: <code>{ $user_uuid }</code>
-    • <b>HWID</b>: <code>{ $hwid }</code>
-
-    • <b>Платформа</b>: { $platform }
-    • <b>Модель</b>: { $device_model }
-    • <b>Версия ОС</b>: { $os_version }
-    • <b>Агент</b>: { $user_agent }
-    </blockquote>
-
 ntf-event-user-hwid-added =
     #EventUserHwid
 
-    <b>🔅 Событие: Добавлено устройство пользователя!</b>
+    <b>🔅 Событие: Добавлено новое устройство у пользователя!</b>
 
-    { ntf-event-user-hwid }
+    { hdr-user }
+    { frg-user-info }
+
+    { hdr-hwid }
+    { frg-user-hwid }
 
 ntf-event-user-hwid-deleted =
     #EventUserHwid
 
-    <b>🔅 Событие: Удалено устройство пользователя!</b>
+    <b>🔅 Событие: Удалено устройство у пользователя!</b>
 
-    { ntf-event-user-hwid }
+    { hdr-user }
+    { frg-user-info }
+
+    { hdr-hwid }
+    { frg-user-hwid }
 
 
 # Notifications
@@ -248,6 +208,10 @@ ntf-rules-accept-required = ⚠️ <b>Перед использованием с
 ntf-throttling-many-requests = <i>⚠️ Вы отправляете слишком много запросов, пожалуйста, подождите немного</i>
 
 ntf-user-not-found = <i>❌ Пользователь не найден</i>
+ntf-user-transactions-empty = <i>❌ Список транзакций пуст</i>
+ntf-user-subscription-empty = <i>❌ Текущая подписка не найдена</i>
+ntf-user-devices-empty = <i>❌ Список устройств пуст</i>
+ntf-user-invalid-number = <i>❌ Некорректное число</i>
 
 ntf-access-denied = <i>🚧 Бот в режиме обслуживания, попробуйте позже</i>
 ntf-access-denied-purchasing = <i>🚧 Бот в режиме обслуживания, Вам придет уведомление когда бот снова будет доступен</i>

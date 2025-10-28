@@ -23,6 +23,8 @@ class Promocode(BaseSql, TimestampMixin):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
     code: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False)
+
     reward_type: Mapped[PromocodeRewardType] = mapped_column(
         Enum(
             PromocodeRewardType,
@@ -32,8 +34,6 @@ class Promocode(BaseSql, TimestampMixin):
         ),
         nullable=False,
     )
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False)
-
     reward: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     plan: Mapped[PlanSnapshotDto] = mapped_column(JSON, nullable=True)
 

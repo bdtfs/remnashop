@@ -1,5 +1,7 @@
 from typing import Optional
 
+from sqlalchemy import func, select
+
 from src.core.enums import PlanAvailability, PlanType
 from src.infrastructure.database.models.sql import Plan
 
@@ -36,3 +38,6 @@ class PlanRepository(BaseRepository):
 
     async def filter_active(self, is_active: bool) -> list[Plan]:
         return await self._get_many(Plan, Plan.is_active == is_active)
+
+    async def get_max_index(self) -> Optional[int]:
+        return await self.session.scalar(select(func.max(Plan.order_index)))

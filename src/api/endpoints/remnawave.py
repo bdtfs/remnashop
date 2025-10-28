@@ -35,7 +35,7 @@ async def remnawave_webhook(
     except orjson.JSONDecodeError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid JSON body")
     except Exception as exc:
-        logger.exception("Webhook validation failed")
+        logger.exception("[REMNAWAVE] Webhook validation failed")
         raise HTTPException(status_code=401, detail=str(exc))
 
     if not payload:
@@ -48,13 +48,17 @@ async def remnawave_webhook(
     elif WebhookUtility.is_user_hwid_devices_event(payload.event):
         # FIXME: dto
         event = cast(UserHwidDeviceEventDto, WebhookUtility.get_typed_data(payload))
-        await remnawave_service.handle_device_event(payload.event, event.data["hwidUserDevice"])
+        await remnawave_service.handle_device_event(
+            payload.event,
+            event.data["user"],
+            event.data["hwidUserDevice"],
+        )
 
     elif WebhookUtility.is_node_event(payload.event):
         node = cast(RemnaNodeDto, WebhookUtility.get_typed_data(payload))
         await remnawave_service.handle_node_event(payload.event, node)
 
     else:
-        logger.warning(f"Unhandled Remnawave event type: {payload.event}")
+        logger.warning(f"[REMNAWAVE] Unhandled Remnawave event type: {payload.event}")
 
     return Response(status_code=status.HTTP_200_OK)

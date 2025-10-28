@@ -32,9 +32,10 @@ class BaseTransactionDto(TrackableDto):
     payment_id: UUID
 
     status: TransactionStatus
+    is_test: bool = False
+
     purchase_type: PurchaseType
     gateway_type: PaymentGatewayType
-    is_test: bool = False
 
     pricing: PriceDetailsDto
     currency: Currency

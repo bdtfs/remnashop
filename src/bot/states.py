@@ -69,10 +69,17 @@ class DashboardUsers(StatesGroup):
 
 class DashboardUser(StatesGroup):
     MAIN = State()
+    SUBSCRIPTION = State()
+    TRAFFIC_LIMIT = State()
+    DEVICE_LIMIT = State()
+    EXPIRE_TIME = State()
+    SQUADS = State()
+    DEVICES_LIST = State()
+    DISCOUNT = State()
     STATISTICS = State()
     ROLE = State()
-    SUBSCRIPTION = State()
-    TRANSACTIONS = State()
+    TRANSACTIONS_LIST = State()
+    TRANSACTION = State()
 
 
 class DashboardRemnashop(StatesGroup):
@@ -121,7 +128,7 @@ class DashboardRemnawave(StatesGroup):
     INBOUNDS = State()
 
 
-def state_from_string(state_str: str, sep: str | None = ":") -> Optional[State]:
+def state_from_string(state_str: str, sep: Optional[str] = ":") -> Optional[State]:
     try:
         group_name, state_name = state_str.split(":")
         group_cls = globals().get(group_name)

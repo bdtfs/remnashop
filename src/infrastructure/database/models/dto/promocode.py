@@ -20,9 +20,9 @@ class PromocodeDto(TrackableDto):
     id: Optional[int] = Field(default=None, frozen=True)
 
     code: str
-    reward_type: PromocodeRewardType
     is_active: bool
 
+    reward_type: PromocodeRewardType
     reward: Optional[int] = None
     plan: Optional["PlanSnapshotDto"] = None
 

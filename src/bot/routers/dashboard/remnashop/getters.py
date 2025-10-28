@@ -23,8 +23,8 @@ async def admins_getter(
 
     users_dicts = [
         {
-            "telegram_id": user.telegram_id,
-            "name": user.name,
+            "user_id": user.telegram_id,
+            "user_name": user.name,
             "deletable": user.telegram_id != config.bot.dev_id,
         }
         for user in all_users

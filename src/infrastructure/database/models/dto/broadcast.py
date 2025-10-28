@@ -33,4 +33,5 @@ class BroadcastMessageDto(TrackableDto):
 
     user_id: int
     message_id: Optional[int] = None
+
     status: BroadcastMessageStatus

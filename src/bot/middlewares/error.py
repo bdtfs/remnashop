@@ -21,10 +21,15 @@ class ErrorMiddleware(EventTypedMiddleware):
         data: dict[str, Any],
     ) -> Any:
         aiogram_user: Optional[AiogramUser] = self._get_aiogram_user(event)
-        user_id = str(aiogram_user.id) if aiogram_user else None
-        user_name = aiogram_user.full_name if aiogram_user else None
-        error_event = cast(ErrorEvent, event)
 
+        if aiogram_user:
+            user_id = str(aiogram_user.id)
+            user_name = aiogram_user.full_name
+            username = aiogram_user.username
+        else:
+            user_id = None
+
+        error_event = cast(ErrorEvent, event)
         traceback_str = traceback.format_exc()
         error_type_name = type(error_event.exception).__name__
         error_message = Text(str(error_event.exception)[:512])
@@ -34,8 +39,9 @@ class ErrorMiddleware(EventTypedMiddleware):
             traceback_str=traceback_str,
             i18n_kwargs={
                 "user": bool(user_id),
-                "id": user_id,
-                "name": user_name,
+                "user_id": str(user_id),
+                "user_name": user_name,
+                "username": username or False,
                 "error": f"{error_type_name}: {error_message.as_html()}",
             },
         )

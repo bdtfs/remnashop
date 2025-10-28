@@ -15,9 +15,7 @@ from .handlers import on_get_trial
 
 menu = Window(
     Banner(BannerName.MENU),
-    I18nFormat("msg-menu-profile"),
-    I18nFormat("separator"),
-    I18nFormat("msg-menu-subscription"),
+    I18nFormat("msg-main-menu"),
     # Row(
     #     Button(
     #         text=I18nFormat(ButtonKey.CONNECT),

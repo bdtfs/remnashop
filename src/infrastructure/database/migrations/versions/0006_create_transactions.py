@@ -15,11 +15,13 @@ def upgrade() -> None:
         "transactions",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column("payment_id", sa.UUID(), nullable=False),
+        sa.Column("user_telegram_id", sa.BigInteger(), nullable=False),
         sa.Column(
             "status",
             postgresql.ENUM(name="transaction_status", create_type=False),
             nullable=False,
         ),
+        sa.Column("is_test", sa.Boolean(), nullable=False),
         sa.Column(
             "purchase_type", postgresql.ENUM(name="purchasetype", create_type=False), nullable=False
         ),
@@ -28,11 +30,9 @@ def upgrade() -> None:
             postgresql.ENUM(name="payment_gateway_type", create_type=False),
             nullable=False,
         ),
-        sa.Column("is_test", sa.Boolean(), nullable=False),
         sa.Column("pricing", sa.JSON(), nullable=False),
         sa.Column("currency", postgresql.ENUM(name="currency", create_type=False), nullable=False),
         sa.Column("plan", sa.JSON(), nullable=False),
-        sa.Column("user_telegram_id", sa.BigInteger(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),

@@ -152,7 +152,7 @@ async def inbounds_getter(
     inbounds_text = "\n".join(
         i18n.get(
             "msg-remnawave-inbound-details",
-            uuid=str(inbound.uuid),
+            inbound_id=str(inbound.uuid),
             tag=inbound.tag,
             type=inbound.type,
             port=str(int(inbound.port)),

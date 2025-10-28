@@ -14,7 +14,7 @@ class ErrorMiddleware(TaskiqMiddleware):
         result: TaskiqResult[Any],
         exception: BaseException,
     ) -> None:
-        logger.error(f"[ERROR] Task '{message.task_name}' failed: {exception}")
+        logger.error(f"[BROKER] Task '{message.task_name}' error: {exception}")
         from src.infrastructure.taskiq.tasks.notifications import (  # noqa: PLC0415
             send_error_notification_task,
         )

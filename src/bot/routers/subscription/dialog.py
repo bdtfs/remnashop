@@ -38,7 +38,7 @@ subscription = Window(
             text=I18nFormat("btn-subscription-renew"),
             id=f"{PURCHASE_PREFIX}{PurchaseType.RENEW}",
             on_click=on_subscription_plans,
-            when=F["has_active_subscription"],
+            when=F["has_active_subscription"] & F["is_not_unlimited"],
         ),
         Button(
             text=I18nFormat("btn-subscription-change"),
@@ -125,12 +125,12 @@ duration = Window(
             state=Subscription.PLANS,
             when=~F["only_single_plan"],
         ),
-        SwitchTo(
-            text=I18nFormat("btn-back"),
-            id=f"{PURCHASE_PREFIX}back_main",
-            state=Subscription.MAIN,
-            when=(F["only_single_plan"]) | (F["purchase_type"] == PurchaseType.RENEW),
-        ),
+        # SwitchTo(
+        #     text=I18nFormat("btn-back"),
+        #     id=f"{PURCHASE_PREFIX}back_main",
+        #     state=Subscription.MAIN,
+        #     when=(F["only_single_plan"]) | (F["purchase_type"] == PurchaseType.RENEW),
+        # ),
     ),
     Row(
         Start(
@@ -167,7 +167,14 @@ payment_method = Window(
             text=I18nFormat("btn-subscription-back-duration"),
             id=f"{PURCHASE_PREFIX}back",
             state=Subscription.DURATION,
+            when=~F["only_single_duration"],
         ),
+        # SwitchTo(
+        #     text=I18nFormat("btn-back"),
+        #     id=f"{PURCHASE_PREFIX}back_main",
+        #     state=Subscription.MAIN,
+        #     when=F["only_single_duration"],
+        # ),
     ),
     Row(
         Start(
@@ -208,7 +215,7 @@ confirm = Window(
             text=I18nFormat("btn-subscription-back-duration"),
             id=f"{PURCHASE_PREFIX}back_duration",
             state=Subscription.DURATION,
-            when=F["only_single_gateway"],
+            when=F["only_single_gateway"] & ~F["only_single_duration"],
         ),
     ),
     Row(

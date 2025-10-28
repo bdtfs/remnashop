@@ -89,8 +89,11 @@ def i18n_format_bytes_to_unit(
     round_up: bool = False,
     min_unit: ByteUnitKey = ByteUnitKey.GIGABYTE,
 ) -> tuple[str, dict[str, float]]:
-    if not value or value == 0:
+    if value == -1:
         return UtilKey.UNLIMITED, {}
+
+    if not value:
+        value = 0
 
     bytes_value = Decimal(value)
     units: Final[list[ByteUnitKey]] = list(ByteUnitKey)  # [B, KB, MB, GB]
@@ -154,10 +157,6 @@ def i18n_format_days(value: int) -> tuple[str, dict[str, int]]:
     return TimeUnitKey.DAY, {"value": value}
 
 
-def i18n_format_limit(value: int) -> tuple[str, dict[str, int]]:
-    return UtilKey.UNIT_UNLIMITED, {"value": value}
-
-
 def i18n_format_traffic_limit(value: int) -> tuple[str, dict[str, int]]:
     if value == -1:
         return UtilKey.UNIT_UNLIMITED, {"value": value}
@@ -165,9 +164,28 @@ def i18n_format_traffic_limit(value: int) -> tuple[str, dict[str, int]]:
     return ByteUnitKey.GIGABYTE, {"value": value}
 
 
-def i18n_format_expire_time(expiry_time: timedelta) -> list[tuple[str, dict[str, int]]]:
-    days = expiry_time.days
-    seconds = expiry_time.seconds
+def i18n_format_device_limit(value: int) -> tuple[str, dict[str, int]]:
+    return UtilKey.UNIT_UNLIMITED, {"value": value}
+
+
+def i18n_format_expire_time(expiry: Union[timedelta, datetime]) -> list[tuple[str, dict[str, int]]]:
+    # Special case: unlimited remnawave ;D
+    if isinstance(expiry, datetime) and expiry.year == 2099:
+        return [(UtilKey.UNLIMITED, {"value": -1})]
+
+    # Convert datetime to timedelta
+    if isinstance(expiry, datetime):
+        now = datetime_now()
+        delta = expiry - now
+    else:
+        delta = expiry
+
+    if delta.total_seconds() <= 0:
+        # Already expired or zero, default to 1 minute
+        return [(TimeUnitKey.MINUTE, {"value": 1})]
+
+    days = delta.days
+    seconds = delta.seconds
     parts: list[tuple[str, dict[str, int]]] = []
 
     # Years
@@ -193,15 +211,21 @@ def i18n_format_expire_time(expiry_time: timedelta) -> list[tuple[str, dict[str,
     return parts or [(TimeUnitKey.MINUTE, {"value": 1})]
 
 
-def i18n_format_collapse_tags(text: str) -> str:
+def i18n_format_collapse_tags(text: str, collapse_level: int = 2) -> str:
     def replacer(match: Match[str]) -> str:
         tag = match.group(1)
         content = match.group(2).rstrip()
         return f"<{tag}>{content}</{tag}>"
 
-    return re.sub(
+    text = re.sub(
         r"<(\w+)>[\n\r]+(.*?)[\n\r]+</\1>",
         replacer,
         text,
         flags=re.DOTALL,
     )
+
+    max_newlines = "\n" * collapse_level
+    pattern = rf"\n{{{collapse_level + 1},}}"
+    text = re.sub(pattern, max_newlines, text)
+
+    return text

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .user import User
@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import JSON, BigInteger, Boolean, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy import ARRAY, JSON, BigInteger, Boolean, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,7 +23,14 @@ class Subscription(BaseSql, TimestampMixin):
     __tablename__ = "subscriptions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+
     user_remna_id: Mapped[UUID] = mapped_column(PG_UUID, nullable=False)
+    user_telegram_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("users.telegram_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
 
     status: Mapped[SubscriptionStatus] = mapped_column(
         Enum(
@@ -34,17 +41,16 @@ class Subscription(BaseSql, TimestampMixin):
         ),
         nullable=False,
     )
-    expire_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
-    url: Mapped[str] = mapped_column(String, nullable=False)
-    plan: Mapped[PlanSnapshotDto] = mapped_column(JSON, nullable=False)
     is_trial: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
-    user_telegram_id: Mapped[int] = mapped_column(
-        BigInteger,
-        ForeignKey("users.telegram_id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
+    traffic_limit: Mapped[int] = mapped_column(Integer, nullable=False)
+    device_limit: Mapped[int] = mapped_column(Integer, nullable=False)
+    internal_squads: Mapped[list[UUID]] = mapped_column(ARRAY(PG_UUID), nullable=False)
+
+    expire_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    url: Mapped[str] = mapped_column(String, nullable=False)
+
+    plan: Mapped[PlanSnapshotDto] = mapped_column(JSON, nullable=False)
 
     user: Mapped["User"] = relationship(
         "User",

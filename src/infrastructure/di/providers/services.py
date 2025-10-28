@@ -6,6 +6,7 @@ from src.services.command import CommandService
 from src.services.notification import NotificationService
 from src.services.payment_gateway import PaymentGatewayService
 from src.services.plan import PlanService
+from src.services.pricing import PricingService
 from src.services.promocode import PromocodeService
 from src.services.remnawave import RemnawaveService
 from src.services.settings import SettingsService
@@ -24,10 +25,11 @@ class ServicesProvider(Provider):
     gateway_service = provide(source=PaymentGatewayService, scope=Scope.REQUEST)
     plan_service = provide(source=PlanService, scope=Scope.REQUEST)
     promocode_service = provide(source=PromocodeService, scope=Scope.REQUEST)
-    remnawave_service = provide(source=RemnawaveService)
+    remnawave_service = provide(source=RemnawaveService, scope=Scope.REQUEST)
     subscription_service = provide(source=SubscriptionService, scope=Scope.REQUEST)
     transaction_service = provide(source=TransactionService, scope=Scope.REQUEST)
     user_service = provide(source=UserService, scope=Scope.REQUEST)
     webhook_service = provide(source=WebhookService)
     settings_service = provide(source=SettingsService, scope=Scope.REQUEST)
     broadcast_service = provide(source=BroadcastService, scope=Scope.REQUEST)
+    pricing_service = provide(source=PricingService)

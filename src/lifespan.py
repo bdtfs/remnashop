@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import WebhookInfo
@@ -7,6 +7,7 @@ from dishka import AsyncContainer, Scope
 from fastapi import FastAPI
 from loguru import logger
 
+from src.__version__ import __version__
 from src.api.endpoints import TelegramWebhookEndpoint
 from src.core.enums import SystemNotificationType
 from src.infrastructure.taskiq.tasks.notifications import (
@@ -40,7 +41,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     webhook_info: WebhookInfo = await webhook_service.setup(allowed_updates)
 
     if webhook_service.has_error(webhook_info):
-        logger.critical(f"Webhook has a last error message: {webhook_info.last_error_message}")
+        logger.critical(
+            f"[LIFESPAN] Webhook has a last error message: {webhook_info.last_error_message}"
+        )
         await send_system_notification_task.kiq(
             ntf_type=SystemNotificationType.BOT_LIFETIME,
             i18n_key="ntf-event-error-webhook",
@@ -52,15 +55,28 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     bot: Bot = await container.get(Bot)
     bot_info = await bot.get_me()
-    states: dict[bool | None, str] = {True: "Enabled", False: "Disabled", None: "Unknown"}
+    states: dict[Optional[bool], str] = {True: "Enabled", False: "Disabled", None: "Unknown"}
 
-    logger.info("Bot settings:")
-    logger.info("-----------------------")
-    logger.info(f"Groups Mode  - {states[bot_info.can_join_groups]}")
-    logger.info(f"Privacy Mode - {states[not bot_info.can_read_all_group_messages]}")
-    logger.info(f"Inline Mode  - {states[bot_info.supports_inline_queries]}")
-    logger.info("-----------------------")
-    logger.warning(f"Bot in access mode: '{access_mode}'")
+    logger.opt(colors=True).info(
+        f"""
+    <cyan> _____                                _                 </>
+    <cyan>|  __ \                              | |                </>
+    <cyan>| |__) |___ _ __ ___  _ __   __ _ ___| |__   ___  _ __  </>
+    <cyan>|  _  // _ \ '_ ` _ \| '_ \ / _` / __| '_ \ / _ \| '_ \ </>
+    <cyan>| | \ \  __/ | | | | | | | | (_| \__ \ | | | (_) | |_) |</>
+    <cyan>|_|  \_\___|_| |_| |_|_| |_|\__,_|___/_| |_|\___/| .__/ </>
+    <cyan>                                                 | |    </>
+    <cyan>                                                 |_|    </>
+
+        <green>Bot version: {__version__}</>
+        <cyan>------------------------</>
+        Groups Mode  - {states[bot_info.can_join_groups]}
+        Privacy Mode - {states[not bot_info.can_read_all_group_messages]}
+        Inline Mode  - {states[bot_info.supports_inline_queries]}
+        <cyan>------------------------</>
+        <yellow>Bot in access mode: '{access_mode}'</>
+        """  # noqa: W605
+    )
 
     await send_system_notification_task.kiq(
         ntf_type=SystemNotificationType.BOT_LIFETIME,

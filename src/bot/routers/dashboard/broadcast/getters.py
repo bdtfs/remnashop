@@ -108,7 +108,7 @@ async def view_getter(
     dialog_manager.dialog_data["payload"] = broadcast.payload.model_dump()
 
     return {
-        "id": str(broadcast.task_id),
+        "broadcast_id": str(broadcast.task_id),
         "broadcast_status": broadcast.status,
         "audience_type": broadcast.audience,
         "created_at": broadcast.created_at.strftime(DATETIME_FORMAT),  # type: ignore[union-attr]

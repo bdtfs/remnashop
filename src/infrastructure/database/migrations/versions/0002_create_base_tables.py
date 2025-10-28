@@ -14,6 +14,7 @@ def upgrade() -> None:
     op.create_table(
         "payment_gateways",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column("order_index", sa.Integer(), nullable=False),
         sa.Column(
             "type", postgresql.ENUM(name="payment_gateway_type", create_type=False), nullable=False
         ),
@@ -46,12 +47,12 @@ def upgrade() -> None:
         "promocodes",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column("code", sa.String(), nullable=False),
+        sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column(
             "reward_type",
             postgresql.ENUM(name="promocode_reward_type", create_type=False),
             nullable=False,
         ),
-        sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("reward", sa.Integer(), nullable=True),
         sa.Column("plan", sa.JSON(), nullable=True),
         sa.Column("lifetime", sa.Integer(), nullable=True),
@@ -75,18 +76,19 @@ def upgrade() -> None:
     op.create_table(
         "plans",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("name", sa.String(), nullable=False),
-        sa.Column("type", postgresql.ENUM(name="plan_type", create_type=False), nullable=False),
+        sa.Column("order_index", sa.Integer(), nullable=False),
         sa.Column("is_active", sa.Boolean(), nullable=False),
-        sa.Column("traffic_limit", sa.Integer(), nullable=False),
-        sa.Column("device_limit", sa.Integer(), nullable=False),
+        sa.Column("type", postgresql.ENUM(name="plan_type", create_type=False), nullable=False),
         sa.Column(
             "availability",
             postgresql.ENUM(name="plan_availability", create_type=False),
             nullable=False,
         ),
+        sa.Column("name", sa.String(), nullable=False),
+        sa.Column("traffic_limit", sa.Integer(), nullable=False),
+        sa.Column("device_limit", sa.Integer(), nullable=False),
         sa.Column("allowed_user_ids", sa.ARRAY(sa.BigInteger()), nullable=True),
-        sa.Column("squad_ids", sa.ARRAY(sa.UUID()), nullable=False),
+        sa.Column("internal_squads", sa.ARRAY(sa.UUID()), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),

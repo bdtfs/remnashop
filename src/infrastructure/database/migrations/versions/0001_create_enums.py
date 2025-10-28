@@ -91,7 +91,8 @@ def upgrade() -> None:
             'PENDING',
             'COMPLETED',
             'CANCELED',
-            'REFUNDED'
+            'REFUNDED',
+            'FAILED'
         )
     """)
 

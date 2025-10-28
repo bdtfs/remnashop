@@ -47,7 +47,7 @@ async def on_user_search(
     else:
         logger.info(
             f"{log(user)} Search for '{search_query}' "
-            f"found {len(found_users)} results. Proceeding to selection state"
+            f"found '{len(found_users)}' results. Proceeding to selection state"
         )
         await dialog_manager.start(
             state=DashboardUsers.SEARCH_RESULTS,
@@ -59,12 +59,12 @@ async def on_user_select(
     callback: CallbackQuery,
     widget: Select[int],
     dialog_manager: DialogManager,
-    user_selected: int,
+    selected_user: int,
 ) -> None:
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
 
-    logger.info(f"{log(user)} User id '{user_selected}' selected")
-    await start_user_window(manager=dialog_manager, target_telegram_id=user_selected)
+    logger.info(f"{log(user)} User id '{selected_user}' selected")
+    await start_user_window(manager=dialog_manager, target_telegram_id=selected_user)
 
 
 @inject

@@ -14,7 +14,7 @@ services:
       - TZ=UTC
     volumes:
       - remnashop-db-local-data:/var/lib/postgresql/data
-    restart: always
+    restart: unless-stopped
 
 volumes:
   remnashop-db-local-data:

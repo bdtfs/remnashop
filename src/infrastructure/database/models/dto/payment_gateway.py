@@ -16,11 +16,11 @@ class PaymentResult(TrackableDto):
 class PaymentGatewayDto(TrackableDto):
     id: Optional[int] = Field(default=None, frozen=True)
 
+    order_index: int
     type: PaymentGatewayType
-
     currency: Currency
-    is_active: bool
 
+    is_active: bool
     settings: Optional["AnyGatewaySettingsDto"] = None
 
 

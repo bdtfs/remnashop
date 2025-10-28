@@ -35,7 +35,7 @@ class UserMiddleware(EventTypedMiddleware):
         aiogram_user: Optional[AiogramUser] = self._get_aiogram_user(event)
 
         if aiogram_user is None or aiogram_user.is_bot:
-            logger.warning("Terminating: event from bot or missing user")
+            logger.warning(f"{self.tag} Terminating middleware: event from bot or missing user")
             return
 
         container: AsyncContainer = data[CONTAINER_KEY]
@@ -49,8 +49,8 @@ class UserMiddleware(EventTypedMiddleware):
                 payload=MessagePayload(
                     i18n_key="ntf-event-new-user",
                     i18n_kwargs={
-                        "id": str(user.telegram_id),
-                        "name": user.name,
+                        "user_id": str(user.telegram_id),
+                        "user_name": user.name,
                         "username": user.username or False,
                     },
                     auto_delete_after=None,

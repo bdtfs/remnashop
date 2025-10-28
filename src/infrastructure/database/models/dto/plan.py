@@ -16,11 +16,19 @@ class PlanSnapshotDto(TrackableDto):
     traffic_limit: int
     device_limit: int
     duration: int
-    squad_ids: list[UUID]
+    internal_squads: list[UUID]
 
     @property
     def is_unlimited_duration(self) -> bool:
         return self.duration == -1
+
+    @property
+    def has_devices_limit(self) -> bool:
+        return self.type in (PlanType.DEVICES, PlanType.BOTH)
+
+    @property
+    def has_traffic_limit(self) -> bool:
+        return self.type in (PlanType.TRAFFIC, PlanType.BOTH)
 
     @classmethod
     def from_plan(cls, plan: "PlanDto", duration_days: int) -> "PlanSnapshotDto":
@@ -31,7 +39,7 @@ class PlanSnapshotDto(TrackableDto):
             traffic_limit=plan.traffic_limit,
             device_limit=plan.device_limit,
             duration=duration_days,
-            squad_ids=plan.squad_ids.copy(),
+            internal_squads=plan.internal_squads.copy(),
         )
 
     @classmethod
@@ -43,25 +51,24 @@ class PlanSnapshotDto(TrackableDto):
             traffic_limit=-1,
             device_limit=-1,
             duration=-1,
-            squad_ids=[],
+            internal_squads=[],
         )
 
 
 class PlanDto(TrackableDto):
     id: Optional[int] = Field(default=None, frozen=True)
 
-    name: str = "Default Plan"
-    type: PlanType = PlanType.BOTH
+    order_index: int = 0
     is_active: bool = False
+    type: PlanType = PlanType.BOTH
+    availability: PlanAvailability = PlanAvailability.ALL
 
+    name: str = "Default Plan"
     traffic_limit: int = 100
     device_limit: int = 1
-
-    # TODO: Add tag and traffic_reset_strategy
-
-    availability: PlanAvailability = PlanAvailability.ALL
     allowed_user_ids: list[int] = []
-    squad_ids: list[UUID] = []
+    internal_squads: list[UUID] = []
+    # TODO: Add tag and traffic_reset_strategy
 
     durations: list["PlanDurationDto"] = []
 

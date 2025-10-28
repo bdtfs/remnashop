@@ -15,8 +15,9 @@ class Plan(BaseSql, TimestampMixin):
     __tablename__ = "plans"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
+    order_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False)
     type: Mapped[PlanType] = mapped_column(
         Enum(
             PlanType,
@@ -26,11 +27,6 @@ class Plan(BaseSql, TimestampMixin):
         ),
         nullable=False,
     )
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False)
-
-    traffic_limit: Mapped[int] = mapped_column(Integer, nullable=False)
-    device_limit: Mapped[int] = mapped_column(Integer, nullable=False)
-
     availability: Mapped[PlanAvailability] = mapped_column(
         Enum(
             PlanAvailability,
@@ -40,8 +36,12 @@ class Plan(BaseSql, TimestampMixin):
         ),
         nullable=False,
     )
+
+    name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    traffic_limit: Mapped[int] = mapped_column(Integer, nullable=False)
+    device_limit: Mapped[int] = mapped_column(Integer, nullable=False)
     allowed_user_ids: Mapped[list[int]] = mapped_column(ARRAY(BigInteger), nullable=True)
-    squad_ids: Mapped[list[UUID]] = mapped_column(ARRAY(PG_UUID), nullable=False)
+    internal_squads: Mapped[list[UUID]] = mapped_column(ARRAY(PG_UUID), nullable=False)
 
     durations: Mapped[list["PlanDuration"]] = relationship(
         "PlanDuration",
@@ -56,9 +56,9 @@ class PlanDuration(BaseSql):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
-    days: Mapped[int] = mapped_column(Integer, nullable=False)
-
     plan_id: Mapped[int] = mapped_column(ForeignKey("plans.id", ondelete="CASCADE"), nullable=False)
+
+    days: Mapped[int] = mapped_column(Integer, nullable=False)
 
     prices: Mapped[list["PlanPrice"]] = relationship(
         "PlanPrice",
@@ -74,6 +74,11 @@ class PlanPrice(BaseSql):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
+    plan_duration_id: Mapped[int] = mapped_column(
+        ForeignKey("plan_durations.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
     currency: Mapped[Currency] = mapped_column(
         Enum(
             Currency,
@@ -84,10 +89,5 @@ class PlanPrice(BaseSql):
         nullable=False,
     )
     price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
-
-    plan_duration_id: Mapped[int] = mapped_column(
-        ForeignKey("plan_durations.id", ondelete="CASCADE"),
-        nullable=False,
-    )
 
     plan_duration: Mapped["PlanDuration"] = relationship("PlanDuration", back_populates="prices")

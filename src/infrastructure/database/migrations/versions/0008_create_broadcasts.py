@@ -63,6 +63,7 @@ def upgrade() -> None:
     op.create_table(
         "broadcast_messages",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column("broadcast_id", sa.Integer(), nullable=False),
         sa.Column("user_id", sa.BigInteger(), nullable=False),
         sa.Column("message_id", sa.BigInteger(), nullable=True),
         sa.Column(
@@ -78,7 +79,6 @@ def upgrade() -> None:
             ),
             nullable=False,
         ),
-        sa.Column("broadcast_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
             ["broadcast_id"],
             ["broadcasts.id"],

@@ -15,8 +15,11 @@ from src.core.enums import (
     SystemNotificationType,
     TransactionStatus,
 )
-from src.core.utils.formatters import format_user_log as log
-from src.core.utils.formatters import i18n_format_days, i18n_format_limit, i18n_format_traffic_limit
+from src.core.utils.formatters import (
+    i18n_format_days,
+    i18n_format_device_limit,
+    i18n_format_traffic_limit,
+)
 from src.infrastructure.database import UnitOfWork
 from src.infrastructure.database.models.dto import (
     AnyGatewaySettingsDto,
@@ -105,10 +108,16 @@ class PaymentGatewayService(BaseService):
                     is_active = False
                     settings = UrlpayGatewaySettingsDto()
                 case _:
-                    logger.warning(f"Unhandled payment gateway type '{gateway_type}' — skipping")
+                    logger.warning(
+                        f"{self.tag} Unhandled payment gateway type '{gateway_type}' — skipping"
+                    )
                     return
 
+            order_index = await self.uow.repository.gateways.get_max_index()
+            order_index = (order_index or 0) + 1
+
             payment_gateway = PaymentGatewayDto(
+                order_index=order_index,
                 type=gateway_type,
                 currency=currency,
                 is_active=is_active,
@@ -118,31 +127,31 @@ class PaymentGatewayService(BaseService):
             db_payment_gateway = PaymentGateway(**payment_gateway.model_dump())
             db_payment_gateway = await self.uow.repository.gateways.create(db_payment_gateway)
 
-            logger.info(f"Payment gateway '{gateway_type}' created")
+            logger.info(f"{self.tag} Payment gateway '{gateway_type}' created")
 
     async def get(self, gateway_id: int) -> Optional[PaymentGatewayDto]:
         db_gateway = await self.uow.repository.gateways.get(gateway_id)
 
         if not db_gateway:
-            logger.warning(f"Payment gateway '{gateway_id}' not found")
+            logger.warning(f"{self.tag} Payment gateway '{gateway_id}' not found")
             return None
 
-        logger.debug(f"Retrieved payment gateway '{gateway_id}'")
+        logger.debug(f"{self.tag} Retrieved payment gateway '{gateway_id}'")
         return PaymentGatewayDto.from_model(db_gateway, decrypt=True)
 
     async def get_by_type(self, gateway_type: PaymentGatewayType) -> Optional[PaymentGatewayDto]:
         db_gateway = await self.uow.repository.gateways.get_by_type(gateway_type)
 
         if not db_gateway:
-            logger.warning(f"Payment gateway of type '{gateway_type}' not found")
+            logger.warning(f"{self.tag} Payment gateway of type '{gateway_type}' not found")
             return None
 
-        logger.debug(f"Retrieved payment gateway of type '{gateway_type}'")
+        logger.debug(f"{self.tag} Retrieved payment gateway of type '{gateway_type}'")
         return PaymentGatewayDto.from_model(db_gateway, decrypt=True)
 
     async def get_all(self) -> list[PaymentGatewayDto]:
         db_gateways = await self.uow.repository.gateways.get_all()
-        logger.debug(f"Retrieved '{len(db_gateways)}' payment gateways")
+        logger.debug(f"{self.tag} Retrieved '{len(db_gateways)}' payment gateways")
         return PaymentGatewayDto.from_model_list(db_gateways, decrypt=False)
 
     async def update(self, gateway: PaymentGatewayDto) -> Optional[PaymentGatewayDto]:
@@ -157,10 +166,10 @@ class PaymentGatewayService(BaseService):
         )
 
         if db_updated_gateway:
-            logger.info(f"Payment gateway '{gateway.type}' updated successfully")
+            logger.info(f"{self.tag} Payment gateway '{gateway.type}' updated successfully")
         else:
             logger.warning(
-                f"Attempted to update gateway '{gateway.type}' (ID: {gateway.id}), "
+                f"{self.tag} Attempted to update gateway '{gateway.type}' (ID: {gateway.id}), "
                 f"but gateway was not found or update failed"
             )
 
@@ -168,7 +177,9 @@ class PaymentGatewayService(BaseService):
 
     async def filter_active(self, is_active: bool = True) -> list[PaymentGatewayDto]:
         db_gateways = await self.uow.repository.gateways.filter_active(is_active)
-        logger.debug(f"Filtered active gateways: '{is_active}', found '{len(db_gateways)}'")
+        logger.debug(
+            f"{self.tag} Filtered active gateways: '{is_active}', found '{len(db_gateways)}'"
+        )
         return PaymentGatewayDto.from_model_list(db_gateways, decrypt=False)
 
     #
@@ -191,27 +202,35 @@ class PaymentGatewayService(BaseService):
             duration=i18n.get(key, **kw),
         )
 
+        transaction_data = {
+            "status": TransactionStatus.PENDING,
+            "purchase_type": purchase_type,
+            "gateway_type": gateway_instance.gateway.type,
+            "pricing": pricing,
+            "currency": gateway_instance.gateway.currency,
+            "plan": plan,
+        }
+
         if pricing.is_free:
-            logger.info(f"{log(user)} Transaction not created. Pricing is free")
-            return PaymentResult(id=uuid.uuid4())
+            payment_id = uuid.uuid4()
+
+            transaction = TransactionDto(payment_id=payment_id, **transaction_data)
+            await self.transaction_service.create(user, transaction)
+
+            logger.info(
+                f"{self.tag} Payment for user '{user.telegram_id}' not created. Pricing is free"
+            )
+            return PaymentResult(id=payment_id, url=None)
 
         payment: PaymentResult = await gateway_instance.handle_create_payment(
             amount=pricing.final_amount,
             details=details,
         )
-        transaction = TransactionDto(
-            payment_id=payment.id,
-            status=TransactionStatus.PENDING,
-            purchase_type=purchase_type,
-            gateway_type=gateway_instance.gateway.type,
-            pricing=pricing,
-            currency=gateway_instance.gateway.currency,
-            plan=plan,
-        )
+        transaction = TransactionDto(payment_id=payment.id, **transaction_data)
         await self.transaction_service.create(user, transaction)
 
-        logger.info(f"{log(user)} Created transaction '{payment.id}'")
-        logger.info(f"{log(user)} Payment link: '{payment.url}'")
+        logger.info(f"{self.tag} Created transaction '{payment.id}' for user '{user.telegram_id}'")
+        logger.info(f"{self.tag} Payment link: '{payment.url}' for user '{user.telegram_id}'")
         return payment
 
     async def create_test_payment(
@@ -243,9 +262,11 @@ class PaymentGatewayService(BaseService):
         )
         await self.transaction_service.create(user, test_transaction)
 
-        logger.info(f"{log(user)} Created test transaction '{test_payment_id}'")
         logger.info(
-            f"Created test payment '{test_payment.id}' for gateway '{gateway_type}', "
+            f"{self.tag} Created test transaction '{test_payment_id}' for user '{user.telegram_id}'"
+        )
+        logger.info(
+            f"{self.tag} Created test payment '{test_payment.id}' for gateway '{gateway_type}', "
             f"link: '{test_payment.url}'"
         )
         return test_payment
@@ -254,17 +275,22 @@ class PaymentGatewayService(BaseService):
         transaction = await self.transaction_service.get(payment_id)
 
         if not transaction or not transaction.user:
-            logger.critical(f"Transaction or user not found for '{payment_id}'")
+            logger.critical(f"{self.tag} Transaction or user not found for '{payment_id}'")
             return
 
         if transaction.is_completed:
-            logger.warning(f"{log(transaction.user)} Transaction '{payment_id}' already completed")
+            logger.warning(
+                f"{self.tag} Transaction '{payment_id}' for user "
+                f"'{transaction.user.telegram_id}' already completed"
+            )
             return
 
         transaction.status = TransactionStatus.COMPLETED
         await self.transaction_service.update(transaction)
 
-        logger.info(f"{log(transaction.user)} Payment succeeded '{payment_id}'")
+        logger.info(
+            f"{self.tag} Payment succeeded '{payment_id}' for user '{transaction.user.telegram_id}'"
+        )
 
         if transaction.is_test:
             await send_test_transaction_notification_task.kiq(user=transaction.user)
@@ -295,7 +321,7 @@ class PaymentGatewayService(BaseService):
                     i18n_format_traffic_limit(plan.traffic_limit) if plan else "N/A"
                 ),
                 "previous_plan_device_limit": (
-                    i18n_format_limit(plan.device_limit) if plan else "N/A"
+                    i18n_format_device_limit(plan.device_limit) if plan else "N/A"
                 ),
                 "previous_plan_duration": (i18n_format_days(plan.duration) if plan else "N/A"),
             }
@@ -309,11 +335,11 @@ class PaymentGatewayService(BaseService):
             "currency": transaction.currency.symbol,
             "user_id": str(transaction.user.telegram_id),
             "user_name": transaction.user.name,
-            "user_username": transaction.user.username or False,
+            "username": transaction.user.username or False,
             "plan_name": transaction.plan.name,
             "plan_type": transaction.plan.type,
             "plan_traffic_limit": i18n_format_traffic_limit(transaction.plan.traffic_limit),
-            "plan_device_limit": i18n_format_limit(transaction.plan.device_limit),
+            "plan_device_limit": i18n_format_device_limit(transaction.plan.device_limit),
             "plan_duration": i18n_format_days(transaction.plan.duration),
         }
 
@@ -323,30 +349,26 @@ class PaymentGatewayService(BaseService):
             i18n_kwargs={**i18n_kwargs, **extra_i18n_kwargs},
         )
 
-        await purchase_subscription_task.kiq(
-            transaction.user,
-            transaction.plan,
-            transaction.purchase_type,
-            subscription,
-        )
-
-        logger.debug(f"{log(transaction.user)} Called tasks for payment")
+        await purchase_subscription_task.kiq(transaction, subscription)
+        logger.debug(f"{self.tag} Called tasks payment for user '{transaction.user.telegram_id}'")
 
     async def handle_payment_canceled(self, payment_id: UUID) -> None:
         transaction = await self.transaction_service.get(payment_id)
 
         if not transaction or not transaction.user:
-            logger.critical(f"Transaction or user not found for '{payment_id}'")
+            logger.critical(f"{self.tag} Transaction or user not found for '{payment_id}'")
             return
 
         transaction.status = TransactionStatus.CANCELED
         await self.transaction_service.update(transaction)
-        logger.info(f"{log(transaction.user)} Payment canceled '{payment_id}'")
+        logger.info(
+            f"{self.tag} Payment canceled '{payment_id}' for user '{transaction.user.telegram_id}'"
+        )
 
     #
 
     async def _get_gateway_instance(self, gateway_type: PaymentGatewayType) -> BasePaymentGateway:
-        logger.debug(f"Creating gateway instance for type '{gateway_type}'")
+        logger.debug(f"{self.tag} Creating gateway instance for type '{gateway_type}'")
         gateway = await self.get_by_type(gateway_type)
 
         if not gateway:

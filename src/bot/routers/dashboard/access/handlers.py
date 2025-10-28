@@ -52,7 +52,7 @@ async def on_condition_toggle(
         settings.channel_required = new_state
 
     await settings_service.update(settings)
-    logger.info(f"{log(user)} Toggled {callback.data} -> '{new_state}'")
+    logger.info(f"{log(user)} Toggled '{callback.data}' -> '{new_state}'")
 
 
 @inject

@@ -1,5 +1,7 @@
 from typing import Any, Optional
 
+from sqlalchemy import func, select
+
 from src.core.enums import PaymentGatewayType
 from src.infrastructure.database.models.sql import PaymentGateway
 
@@ -24,3 +26,6 @@ class PaymentGatewayRepository(BaseRepository):
 
     async def filter_active(self, is_active: bool) -> list[PaymentGateway]:
         return await self._get_many(PaymentGateway, PaymentGateway.is_active == is_active)
+
+    async def get_max_index(self) -> Optional[int]:
+        return await self.session.scalar(select(func.max(PaymentGateway.order_index)))

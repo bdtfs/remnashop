@@ -129,22 +129,22 @@ async def prices_getter(dialog_manager: DialogManager, **kwargs: Any) -> dict[st
     if not plan:
         raise ValueError("PlanDto not found in dialog data")
 
-    duration_selected = dialog_manager.dialog_data["duration_selected"]
-    prices = get_prices_for_duration(plan.durations, duration_selected)
+    selected_duration = dialog_manager.dialog_data["selected_duration"]
+    prices = get_prices_for_duration(plan.durations, selected_duration)
     prices_data = [price.model_dump() for price in prices] if prices else []
 
     return {
-        "duration": duration_selected,
+        "duration": selected_duration,
         "prices": prices_data,
     }
 
 
 async def price_getter(dialog_manager: DialogManager, **kwargs: Any) -> dict[str, Any]:
-    duration_selected = dialog_manager.dialog_data.get("duration_selected")
-    currency_selected = dialog_manager.dialog_data.get("currency_selected")
+    selected_duration = dialog_manager.dialog_data.get("selected_duration")
+    selected_currency = dialog_manager.dialog_data.get("selected_currency")
     return {
-        "duration": duration_selected,
-        "currency": currency_selected,
+        "duration": selected_duration,
+        "currency": selected_currency,
     }
 
 
@@ -177,10 +177,10 @@ async def squads_getter(
 
     existing_squad_uuids = {squad.uuid for squad in response.internal_squads}
 
-    if plan.squad_ids:
-        plan_squad_uuids_set = set(plan.squad_ids)
+    if plan.internal_squads:
+        plan_squad_uuids_set = set(plan.internal_squads)
         valid_squad_uuids_set = plan_squad_uuids_set.intersection(existing_squad_uuids)
-        plan.squad_ids = list(valid_squad_uuids_set)
+        plan.internal_squads = list(valid_squad_uuids_set)
 
     adapter.save(plan)
 
@@ -188,7 +188,7 @@ async def squads_getter(
         {
             "uuid": squad.uuid,
             "name": squad.name,
-            "selected": True if squad.uuid in plan.squad_ids else False,
+            "selected": True if squad.uuid in plan.internal_squads else False,
         }
         for squad in response.internal_squads
     ]

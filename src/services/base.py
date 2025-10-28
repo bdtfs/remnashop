@@ -15,6 +15,10 @@ class BaseService(ABC):
     redis_repository: RedisRepository
     translator_hub: TranslatorHub
 
+    @property
+    def tag(self) -> str:
+        return f"[{self.__class__.__name__}]"
+
     def __init__(
         self,
         config: AppConfig,

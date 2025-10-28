@@ -91,7 +91,7 @@ admins = Window(
     ListGroup(
         Row(
             Button(
-                text=Format("{item[telegram_id]} ({item[name]})"),
+                text=Format("{item[user_id]} ({item[user_name]})"),
                 id="select_user",
                 on_click=on_user_select,
             ),
@@ -103,7 +103,7 @@ admins = Window(
             ),
         ),
         id="admins_list",
-        item_id_getter=lambda item: item["telegram_id"],
+        item_id_getter=lambda item: item["user_id"],
         items="admins",
     ),
     Row(

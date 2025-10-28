@@ -13,7 +13,7 @@ router = Router(name=__name__)
 
 @router.callback_query(F.data.startswith(GOTO_PREFIX))
 async def on_goto(callback: CallbackQuery, dialog_manager: DialogManager, user: UserDto) -> None:
-    logger.info(f"{log(user)} Go to {callback.data}")
+    logger.info(f"{log(user)} Go to '{callback.data}'")
     data = callback.data.removeprefix(GOTO_PREFIX)  # type: ignore[union-attr]
 
     if data.startswith(PURCHASE_PREFIX):

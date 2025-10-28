@@ -1,6 +1,5 @@
 from typing import Optional
 
-from loguru import logger
 from pydantic import Field, SecretStr
 
 from src.core.enums import AccessMode, Currency, SystemNotificationType, UserNotificationType

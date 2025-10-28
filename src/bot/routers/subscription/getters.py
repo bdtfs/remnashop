@@ -5,13 +5,12 @@ from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 from fluentogram import TranslatorRunner
 
-from src.core.constants import USER_KEY
 from src.core.enums import PurchaseType
 from src.core.utils.adapter import DialogDataAdapter
 from src.core.utils.formatters import (
     i18n_format_days,
+    i18n_format_device_limit,
     i18n_format_expire_time,
-    i18n_format_limit,
     i18n_format_traffic_limit,
 )
 from src.infrastructure.database.models.dto import PlanDto, PriceDetailsDto, UserDto
@@ -24,26 +23,27 @@ from src.services.subscription import SubscriptionService
 @inject
 async def subscription_getter(
     dialog_manager: DialogManager,
+    user: UserDto,
     **kwargs: Any,
 ) -> dict[str, Any]:
-    user: UserDto = dialog_manager.middleware_data[USER_KEY]
-
+    has_active = bool(user.current_subscription and not user.current_subscription.is_trial)
+    is_unlimited = user.current_subscription.is_unlimited if user.current_subscription else False
     return {
-        "has_active_subscription": user.current_subscription
-        and not user.current_subscription.is_trial
+        "has_active_subscription": has_active,
+        "is_not_unlimited": not is_unlimited,
     }
 
 
 @inject
 async def plans_getter(
     dialog_manager: DialogManager,
+    user: UserDto,
     subscription_service: FromDishka[SubscriptionService],
     plan_service: FromDishka[PlanService],
     **kwargs: Any,
 ) -> dict[str, Any]:
-    user: UserDto = dialog_manager.middleware_data[USER_KEY]
     is_new_user = await subscription_service.has_any_subscription(user)
-    plans: list[PlanDto] = await plan_service.get_available_plans(user, is_new_user)
+    plans = await plan_service.get_available_plans(user, is_new_user)
 
     formatted_plans = [
         {
@@ -72,6 +72,7 @@ async def duration_getter(
         raise ValueError("PlanDto not found in dialog data")
 
     currency = await settings_service.get_default_currency()
+    only_single_plan = dialog_manager.dialog_data.get("only_single_plan", False)
     durations = []
 
     for duration in plan.durations:
@@ -88,13 +89,13 @@ async def duration_getter(
     return {
         "plan": plan.name,
         "type": plan.type,
-        "devices": i18n_format_limit(plan.device_limit),
+        "devices": i18n_format_device_limit(plan.device_limit),
         "traffic": i18n_format_traffic_limit(plan.traffic_limit),
-        "period": 0,
         "durations": durations,
+        "period": 0,
         "final_amount": 0,
         "currency": "",
-        "only_single_plan": dialog_manager.dialog_data.get("only_single_plan", False),
+        "only_single_plan": only_single_plan,
     }
 
 
@@ -113,6 +114,7 @@ async def payment_method_getter(
 
     gateways = await payment_gateway_service.filter_active()
     selected_duration = dialog_manager.dialog_data["selected_duration"]
+    only_single_duration = dialog_manager.dialog_data.get("only_single_duration", False)
     duration = plan.get_duration(selected_duration)
 
     if not duration:
@@ -133,12 +135,13 @@ async def payment_method_getter(
     return {
         "plan": plan.name,
         "type": plan.type,
-        "devices": i18n_format_limit(plan.device_limit),
+        "devices": i18n_format_device_limit(plan.device_limit),
         "traffic": i18n_format_traffic_limit(plan.traffic_limit),
         "period": i18n.get(key, **kw),
         "payment_methods": payment_methods,
         "final_amount": 0,
         "currency": "",
+        "only_single_duration": only_single_duration,
     }
 
 
@@ -156,6 +159,7 @@ async def confirm_getter(
         raise ValueError("PlanDto not found in dialog data")
 
     selected_duration = dialog_manager.dialog_data["selected_duration"]
+    only_single_duration = dialog_manager.dialog_data.get("only_single_duration", False)
     selected_payment_method = dialog_manager.dialog_data["selected_payment_method"]
     payment_gateway = await payment_gateway_service.get_by_type(selected_payment_method)
     duration = plan.get_duration(selected_duration)
@@ -176,7 +180,7 @@ async def confirm_getter(
     return {
         "plan": plan.name,
         "type": plan.type,
-        "devices": i18n_format_limit(plan.device_limit),
+        "devices": i18n_format_device_limit(plan.device_limit),
         "traffic": i18n_format_traffic_limit(plan.traffic_limit),
         "period": i18n.get(key, **kw),
         "payment_method": selected_payment_method,
@@ -186,34 +190,29 @@ async def confirm_getter(
         "currency": payment_gateway.currency.symbol,
         "url": result_url,
         "only_single_gateway": len(gateways) == 1,
+        "only_single_duration": only_single_duration,
     }
 
 
 @inject
 async def success_payment_getter(
     dialog_manager: DialogManager,
+    user: UserDto,
+    subscription_service: FromDishka[SubscriptionService],
     **kwargs: Any,
 ) -> dict[str, Any]:
-    user: UserDto = dialog_manager.middleware_data[USER_KEY]
     start_data = cast(dict[str, Any], dialog_manager.start_data)
     purchase_type: PurchaseType = start_data["purchase_type"]
+    subscription = await subscription_service.get_current(user.telegram_id)
 
-    if not user.current_subscription:
+    if not subscription:
         raise ValueError(f"User '{user.telegram_id}' has no active subscription after purchase")
-
-    expiry_time = (
-        i18n_format_limit(user.current_subscription.plan.duration)
-        if user.current_subscription.plan.is_unlimited_duration
-        else i18n_format_expire_time(user.current_subscription.expiry_time)
-        if user.current_subscription.expiry_time
-        else "N/A"
-    )
 
     return {
         "purchase_type": purchase_type,
-        "plan_name": user.current_subscription.plan.name,
-        "traffic_limit": i18n_format_traffic_limit(user.current_subscription.plan.traffic_limit),
-        "device_limit": i18n_format_limit(user.current_subscription.plan.device_limit),
-        "expiry_time": expiry_time,
-        "added_duration": i18n_format_days(user.current_subscription.plan.duration),
+        "plan_name": subscription.plan.name,
+        "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
+        "device_limit": i18n_format_device_limit(subscription.device_limit),
+        "expire_time": i18n_format_expire_time(subscription.expire_at),
+        "added_duration": i18n_format_days(subscription.plan.duration),
     }

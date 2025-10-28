@@ -34,18 +34,22 @@ class PlanService(BaseService):
         self.uow = uow
 
     async def create(self, plan: PlanDto) -> PlanDto:
+        order_index = await self.uow.repository.plans.get_max_index()
+        order_index = (order_index or 0) + 1
+        plan.order_index = order_index
+
         db_plan = self._dto_to_model(plan)
         db_created_plan = await self.uow.repository.plans.create(db_plan)
-        logger.info(f"Created plan '{plan.name}' with ID '{db_created_plan.id}'")
+        logger.info(f"{self.tag} Created plan '{plan.name}' with ID '{db_created_plan.id}'")
         return PlanDto.from_model(db_created_plan)  # type: ignore[return-value]
 
     async def get(self, plan_id: int) -> Optional[PlanDto]:
         db_plan = await self.uow.repository.plans.get(plan_id)
 
         if db_plan:
-            logger.debug(f"Retrieved plan '{plan_id}'")
+            logger.debug(f"{self.tag} Retrieved plan '{plan_id}'")
         else:
-            logger.warning(f"Plan '{plan_id}' not found")
+            logger.warning(f"{self.tag} Plan '{plan_id}' not found")
 
         return PlanDto.from_model(db_plan)
 
@@ -53,15 +57,15 @@ class PlanService(BaseService):
         db_plan = await self.uow.repository.plans.get_by_name(plan_name)
 
         if db_plan:
-            logger.debug(f"Retrieved plan by name '{plan_name}'")
+            logger.debug(f"{self.tag} Retrieved plan by name '{plan_name}'")
         else:
-            logger.warning(f"Plan with name '{plan_name}' not found")
+            logger.warning(f"{self.tag} Plan with name '{plan_name}' not found")
 
         return PlanDto.from_model(db_plan)
 
     async def get_all(self) -> list[PlanDto]:
         db_plans = await self.uow.repository.plans.get_all()
-        logger.debug(f"Retrieved '{len(db_plans)}' plans")
+        logger.debug(f"{self.tag} Retrieved '{len(db_plans)}' plans")
         return PlanDto.from_model_list(db_plans)
 
     async def update(self, plan: PlanDto) -> Optional[PlanDto]:
@@ -69,10 +73,10 @@ class PlanService(BaseService):
         db_updated_plan = await self.uow.repository.plans.update(db_plan)
 
         if db_updated_plan:
-            logger.info(f"Updated plan '{plan.name}' (ID: {plan.id}) successfully")
+            logger.info(f"{self.tag} Updated plan '{plan.name}' (ID: {plan.id}) successfully")
         else:
             logger.warning(
-                f"Attempted to update plan '{plan.name}' (ID: {plan.id}), "
+                f"{self.tag} Attempted to update plan '{plan.name}' (ID: {plan.id}), "
                 "but plan was not found or update failed"
             )
 
@@ -82,15 +86,17 @@ class PlanService(BaseService):
         result = await self.uow.repository.plans.delete(plan_id)
 
         if result:
-            logger.info(f"Plan '{plan_id}' deleted successfully")
+            logger.info(f"{self.tag} Plan '{plan_id}' deleted successfully")
         else:
-            logger.warning(f"Failed to delete plan '{plan_id}'. Plan not found or deletion failed")
+            logger.warning(
+                f"{self.tag} Failed to delete plan '{plan_id}'. Plan not found or deletion failed"
+            )
 
         return result
 
     async def count(self) -> int:
         count = await self.uow.repository.plans.count()
-        logger.debug(f"Total plans count: '{count}'")
+        logger.debug(f"{self.tag} Total plans count: '{count}'")
         return count
 
     #
@@ -103,23 +109,25 @@ class PlanService(BaseService):
         if db_plans:
             if len(db_plans) > 1:
                 logger.warning(
-                    f"Multiple trial plans found ({len(db_plans)}). "
+                    f"{self.tag} Multiple trial plans found ({len(db_plans)}). "
                     f"Using the first one: '{db_plans[0].name}'"
                 )
 
             db_plan = db_plans[0]
 
             if db_plan.is_active:
-                logger.debug(f"Available trial plan '{db_plans[0].name}'")
+                logger.debug(f"{self.tag} Available trial plan '{db_plans[0].name}'")
                 return PlanDto.from_model(db_plans[0])
             else:
-                logger.warning(f"Trial plan '{db_plans[0].name}' found but is not active")
+                logger.warning(
+                    f"{self.tag} Trial plan '{db_plans[0].name}' found but is not active"
+                )
 
-        logger.debug("No active trial plan found")
+        logger.debug(f"{self.tag} No active trial plan found")
         return None
 
     async def get_available_plans(self, user_dto: UserDto, is_new_user: bool) -> list[PlanDto]:
-        logger.debug(f"Fetching available plans for user '{user_dto.telegram_id}'")
+        logger.debug(f"{self.tag} Fetching available plans for user '{user_dto.telegram_id}'")
 
         db_plans: list[Plan] = await self.uow.repository.plans.filter_active(is_active=True)
         db_filtered_plans = []
@@ -138,7 +146,7 @@ class PlanService(BaseService):
                     db_filtered_plans.append(db_plan)
 
         logger.info(
-            f"Available plans filtered: '{len(db_filtered_plans)}' "
+            f"{self.tag} Available plans filtered: '{len(db_filtered_plans)}' "
             f"for user '{user_dto.telegram_id}'"
         )
         return PlanDto.from_model_list(db_filtered_plans)

@@ -35,7 +35,7 @@ class DatabaseProvider(Provider):
     @provide
     def get_session_maker(self, engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
         session_maker = async_sessionmaker(bind=engine, expire_on_commit=False)
-        logger.debug("[DB] Created async_sessionmaker")
+        logger.debug("[DB] Created session maker")
         return session_maker
 
     @provide(scope=Scope.REQUEST)

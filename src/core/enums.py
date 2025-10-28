@@ -47,6 +47,7 @@ class TransactionStatus(UpperStrEnum):
     COMPLETED = auto()
     CANCELED = auto()
     REFUNDED = auto()
+    FAILED = auto()
 
 
 class SubscriptionStatus(UpperStrEnum):

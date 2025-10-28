@@ -31,8 +31,9 @@ class I18nProvider(Provider):
             )
 
         logger.debug(
-            f"[I18N] Loaded TranslatorHub with locales: {list(locales_map.keys())}, "
-            f"default={config.default_locale}"
+            f"[I18N] Loaded TranslatorHub with locales: "
+            f"{[locale.value for locale in locales_map.keys()]}, "  # type: ignore[attr-defined]
+            f"default={config.default_locale.value}"
         )
 
         return TranslatorHub(locales_map, root_locale=config.default_locale, storage=storage)
@@ -48,7 +49,7 @@ class I18nProvider(Provider):
 
         if user:
             logger.debug(
-                f"[I18N] Translator for user {user.telegram_id} with locale={user.language}"
+                f"[I18N] Translator for user '{user.telegram_id}' with locale={user.language}"
             )
             return hub.get_translator_by_locale(locale=user.language)
 

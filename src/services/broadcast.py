@@ -44,7 +44,7 @@ class BroadcastService(BaseService):
         db_broadcast = Broadcast(**broadcast.model_dump())
         db_created_broadcast = await self.uow.repository.broadcast.create(db_broadcast)
         await self.uow.commit()
-        logger.info(f"Created broadcast '{broadcast.task_id}'")
+        logger.info(f"{self.tag} Created broadcast '{broadcast.task_id}'")
         return BroadcastDto.from_model(db_created_broadcast)  # type: ignore[return-value]
 
     async def create_messages(
@@ -67,15 +67,15 @@ class BroadcastService(BaseService):
         db_broadcast = await self.uow.repository.broadcast.get(task_id)
 
         if db_broadcast:
-            logger.debug(f"Retrieved broadcast '{task_id}'")
+            logger.debug(f"{self.tag} Retrieved broadcast '{task_id}'")
         else:
-            logger.warning(f"Broadcast '{task_id}' not found")
+            logger.warning(f"{self.tag} Broadcast '{task_id}' not found")
 
         return BroadcastDto.from_model(db_broadcast)
 
     async def get_all(self) -> list[BroadcastDto]:
         db_broadcasts = await self.uow.repository.broadcast.get_all()
-        return BroadcastDto.from_model_list(db_broadcasts)
+        return BroadcastDto.from_model_list(list(reversed(db_broadcasts)))
 
     async def update(self, broadcast: BroadcastDto) -> Optional[BroadcastDto]:
         db_updated_broadcast = await self.uow.repository.broadcast.update(
@@ -84,10 +84,10 @@ class BroadcastService(BaseService):
         )
 
         if db_updated_broadcast:
-            logger.info(f"Updated broadcast '{broadcast.task_id}' successfully")
+            logger.info(f"{self.tag} Updated broadcast '{broadcast.task_id}' successfully")
         else:
             logger.warning(
-                f"Attempted to update broadcast '{broadcast.task_id}', "
+                f"{self.tag} Attempted to update broadcast '{broadcast.task_id}', "
                 f"but broadcast was not found or update failed"
             )
 
@@ -114,7 +114,7 @@ class BroadcastService(BaseService):
         audience: BroadcastAudience,
         plan_id: Optional[int] = None,
     ) -> int:
-        logger.debug(f"Counting audience '{audience}', plan_id: {plan_id}")
+        logger.debug(f"{self.tag} Counting audience '{audience}' for plan '{plan_id}'")
 
         if audience == BroadcastAudience.PLAN:
             if plan_id:
@@ -126,7 +126,9 @@ class BroadcastService(BaseService):
                 Plan,
                 Plan.availability != PlanAvailability.TRIAL,
             )
-            logger.debug(f"Audience count for '{audience}' (plan={plan_id}) is '{count}'")
+            logger.debug(
+                f"{self.tag} Audience count for '{audience}' (plan={plan_id}) is '{count}'"
+            )
             return count
 
         if audience == BroadcastAudience.ALL:
@@ -158,7 +160,7 @@ class BroadcastService(BaseService):
         audience: BroadcastAudience,
         plan_id: Optional[int] = None,
     ) -> list[UserDto]:
-        logger.debug(f"Retrieving users for audience '{audience}', plan_id: {plan_id}")
+        logger.debug(f"{self.tag} Retrieving users for audience '{audience}', plan_id: {plan_id}")
 
         if audience == BroadcastAudience.PLAN and plan_id:
             db_subscriptions = await self.uow.repository.subscriptions.filter_by_plan_id(plan_id)
@@ -166,7 +168,8 @@ class BroadcastService(BaseService):
             user_ids = [sub.user_telegram_id for sub in active_subs]
             db_users = await self.uow.repository.users.get_by_ids(telegram_ids=user_ids)
             logger.debug(
-                f"Retrieved '{len(db_users)}' users for audience '{audience}' (plan={plan_id})"
+                f"{self.tag} Retrieved '{len(db_users)}' "
+                f"users for audience '{audience}' (plan={plan_id})"
             )
             return UserDto.from_model_list(db_users)
 

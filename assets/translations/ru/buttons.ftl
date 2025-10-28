@@ -50,12 +50,37 @@ btn-users-unblock-all-confirm = ✅ Подтвердить
 
 
 # User
+btn-user-discount = 💸 Изменить скидку
 btn-user-statistics = 📊 Статистика
 btn-user-message = 📩 Сообщение
 btn-user-role = 👮‍♂️ Изменить роль
 btn-user-transactions = 🧾 Транзакции
-btn-user-subscription = 💳 Подписка
+btn-user-give-access = 🔑 Доступ к планам
 btn-user-role-choice = { role }
+btn-user-current-subscription = 💳 Текущая подписка
+btn-user-subscription-traffic-limit = 🌐 Лимит трафика
+btn-user-subscription-device-limit = 📱 Лимит устройств
+btn-user-subscription-expire-time = ⏳ Время истечения
+btn-user-subscription-squads = 🔗 Сквады
+btn-user-subscription-traffic-reset = 🔄 Сбросить трафик
+btn-user-subscription-devices = 🧾 Список устройств
+btn-user-subscription-url = 📋 Скопировать ссылку
+btn-user-subscription-set = ✅ Установить подписку
+btn-user-subscription-delete = ❌ Удалить
+
+btn-user-subscription-active-toggle = { $is_active ->
+    [1] 🔴 Выключить
+    *[0] 🟢 Включить
+    }
+
+btn-user-transaction = { $status ->
+    [PENDING] 🕓
+    [COMPLETED] ✅
+    [CANCELED] ❌
+    [REFUNDED] 💸
+    [FAILED] ⚠️
+    *[OTHER] { $status }
+} { $created_at }
 
 btn-user-block = { $is_blocked ->
     [1] 🔓 Разблокировать
@@ -91,7 +116,7 @@ btn-broadcast =  { $status ->
     [CANCELED] ⛔
     [DELETED] ❌
     [ERROR] ⚠️
-    *[OTHER] { $broadcast_status }
+    *[OTHER] { $status }
 } { $created_at }
 
 
@@ -175,6 +200,7 @@ btn-notifications-system-choice = { $enabled ->
     [USER_REGISTERED] Регистрация пользователя
     [SUBSCRIPTION] Оформление подписки
     [PROMOCODE_ACTIVATED] Активация промокода
+    [TRIAL_GETTED] Получение пробника
     [NODE_STATUS] Статус узла
     [USER_FIRST_CONNECTED] Первое подключение
     [USER_HWID] Устройства пользователя
@@ -252,7 +278,10 @@ btn-subscription-renew = 🔄 Продлить
 btn-subscription-change = 🔃 Изменить
 btn-subscription-promocode = 🎟 Активировать промокод
 btn-subscription-plan = { $name }
-btn-subscription-duration = { $period } | { $price } { $currency }
+btn-subscription-duration = { $period } | { $price ->
+    [0] 🎁
+    *[OTHER] { $price } { $currency }
+    } 
 btn-subscription-payment-method = { gateway-type } | { $price } { $currency }
 btn-subscription-pay = 💳 Оплатить
 btn-subscription-get = 🎁 Получить бесплатно

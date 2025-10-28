@@ -119,6 +119,7 @@ view = Window(
             I18nFormat("btn-broadcast-refresh"),
             id="refresh",
             state=DashboardBroadcast.VIEW,
+            when=F["broadcast_status"] == BroadcastStatus.PROCESSING,
         ),
     ),
     Row(
