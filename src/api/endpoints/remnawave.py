@@ -12,6 +12,7 @@ from remnawave.models.webhook import NodeDto, UserDto, UserHwidDeviceEventDto
 
 from src.core.config import AppConfig
 from src.core.constants import API_V1, REMNAWAVE_WEBHOOK_PATH
+from src.core.utils.message_payload import MessagePayload
 from src.infrastructure.taskiq.tasks.notifications import send_error_notification_task
 from src.services.remnawave import RemnawaveService
 
@@ -69,10 +70,13 @@ async def remnawave_webhook(
         await send_error_notification_task.kiq(
             error_id=str(uuid.uuid4()),
             traceback_str=traceback_str,
-            i18n_kwargs={
-                "user": False,
-                "error": f"{error_type_name}: {error_message.as_html()}",
-            },
+            payload=MessagePayload.not_deleted(
+                i18n_key="ntf-event-error",
+                i18n_kwargs={
+                    "user": False,
+                    "error": f"{error_type_name}: {error_message.as_html()}",
+                },
+            ),
         )
 
     return Response(status_code=status.HTTP_200_OK)

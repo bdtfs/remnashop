@@ -95,6 +95,7 @@ async def duration_getter(
 
     return {
         "plan": plan.name,
+        "description": plan.description or False,
         "type": plan.type,
         "devices": i18n_format_device_limit(plan.device_limit),
         "traffic": i18n_format_traffic_limit(plan.traffic_limit),
@@ -141,6 +142,7 @@ async def payment_method_getter(
 
     return {
         "plan": plan.name,
+        "description": plan.description or False,
         "type": plan.type,
         "devices": i18n_format_device_limit(plan.device_limit),
         "traffic": i18n_format_traffic_limit(plan.traffic_limit),
@@ -186,6 +188,7 @@ async def confirm_getter(
 
     return {
         "plan": plan.name,
+        "description": plan.description or False,
         "type": plan.type,
         "devices": i18n_format_device_limit(plan.device_limit),
         "traffic": i18n_format_traffic_limit(plan.traffic_limit),
@@ -206,17 +209,14 @@ async def getter_connect(
     dialog_manager: DialogManager,
     config: AppConfig,
     user: UserDto,
-    subscription_service: FromDishka[SubscriptionService],
     **kwargs: Any,
 ) -> dict[str, Any]:
-    subscription = await subscription_service.get_current(user.telegram_id)
-
-    if not subscription:
+    if not user.current_subscription:
         raise ValueError(f"User '{user.telegram_id}' has no active subscription after purchase")
 
     return {
         "miniapp_url": config.bot.mini_app_url.get_secret_value(),
-        "subscription_url": subscription.url,
+        "subscription_url": user.current_subscription.url,
         "connetable": True,
     }
 
@@ -226,12 +226,11 @@ async def success_payment_getter(
     dialog_manager: DialogManager,
     config: AppConfig,
     user: UserDto,
-    subscription_service: FromDishka[SubscriptionService],
     **kwargs: Any,
 ) -> dict[str, Any]:
     start_data = cast(dict[str, Any], dialog_manager.start_data)
     purchase_type: PurchaseType = start_data["purchase_type"]
-    subscription = await subscription_service.get_current(user.telegram_id)
+    subscription = user.current_subscription
 
     if not subscription:
         raise ValueError(f"User '{user.telegram_id}' has no active subscription after purchase")

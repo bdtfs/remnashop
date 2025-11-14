@@ -11,27 +11,14 @@ from src.services.notification import NotificationService
 # Registered in main router (src/bot/dispatcher.py)
 
 
-async def on_unknown_state(
+async def on_lost_context(
     event: ErrorEvent,
     user: UserDto,
     dialog_manager: DialogManager,
     notification_service: FromDishka[NotificationService],
 ) -> None:
-    logger.error(f"{log(user)} Unknown state")
+    logger.error(f"{log(user)} Lost context: {event.exception}")
     await notification_service.notify_user(
         user=user,
-        payload=MessagePayload(i18n_key="ntf-error-dialog-unknown"),
-    )
-
-
-async def on_unknown_intent(
-    event: ErrorEvent,
-    user: UserDto,
-    dialog_manager: DialogManager,
-    notification_service: FromDishka[NotificationService],
-) -> None:
-    logger.error(f"{log(user)} Unknown intent")
-    await notification_service.notify_user(
-        user=user,
-        payload=MessagePayload(i18n_key="ntf-error-dialog-unknown"),
+        payload=MessagePayload(i18n_key="ntf-error-lost-context"),
     )

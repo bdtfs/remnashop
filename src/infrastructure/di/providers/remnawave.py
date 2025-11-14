@@ -13,20 +13,13 @@ class RemnawaveProvider(Provider):
     def get_remnawave(self, config: AppConfig) -> RemnawaveSDK:
         logger.debug("Initializing RemnawaveSDK")
 
-        # Oh, what is all this garbage, what's the point???
+        headers = {}
+        headers["Authorization"] = f"Bearer {config.remnawave.token.get_secret_value()}"
+        headers["X-Api-Key"] = config.remnawave.caddy_token.get_secret_value()
 
-        extra_headers = {}
         if not config.remnawave.is_external:
-            extra_headers = {
-                "x-forwarded-proto": "https",
-                "x-forwarded-for": "127.0.0.1",
-            }
-
-        headers = {
-            "Authorization": f"Bearer {config.remnawave.token.get_secret_value()}",
-            "X-Api-Key": config.remnawave.caddy_token.get_secret_value(),
-            **extra_headers,
-        }
+            headers["x-forwarded-proto"] = "https"
+            headers["x-forwarded-for"] = "127.0.0.1"
 
         client = AsyncClient(
             base_url=f"{config.remnawave.url.get_secret_value()}/api",

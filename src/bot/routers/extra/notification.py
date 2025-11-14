@@ -20,6 +20,7 @@ async def on_close_notification(callback: CallbackQuery, bot: Bot, user: UserDto
 
     try:
         await notification.delete()
+        await callback.answer()
         logger.debug(f"Notification '{notification_id}' for user '{user.telegram_id}' deleted")
     except Exception as exception:
         logger.error(f"Failed to delete notification '{notification_id}'. Exception: {exception}")

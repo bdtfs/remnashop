@@ -107,10 +107,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         await send_error_notification_task.kiq(
             error_id=str(uuid.uuid4()),
             traceback_str=traceback.format_exc(),
-            i18n_key="ntf-event-error-remnawave",
-            i18n_kwargs={
-                "error": f"{error_type_name}: {error_message.as_html()}",
-            },
+            payload=MessagePayload.not_deleted(
+                i18n_key="ntf-event-error-remnawave",
+                i18n_kwargs={
+                    "error": f"{error_type_name}: {error_message.as_html()}",
+                },
+            ),
         )
 
     yield

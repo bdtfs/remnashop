@@ -328,7 +328,12 @@ def get_plans_statistics(
             or "-"
         )
 
-        key, kw = i18n_format_days(popular_duration)
+        if popular_duration == 0:
+            key = "unknown"
+            kw: dict[str, int] = {}
+        else:
+            key, kw = i18n_format_days(popular_duration)
+
         plans_stats.append(
             i18n.get(
                 "msg-statistics-plan",

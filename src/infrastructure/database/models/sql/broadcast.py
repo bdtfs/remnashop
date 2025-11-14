@@ -45,7 +45,7 @@ class Broadcast(BaseSql, TimestampMixin):
     messages: Mapped[list["BroadcastMessage"]] = relationship(
         back_populates="broadcast",
         cascade="all, delete-orphan",
-        lazy="joined",
+        lazy="selectin",
     )
 
 

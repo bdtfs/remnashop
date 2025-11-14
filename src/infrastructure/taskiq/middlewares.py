@@ -6,6 +6,8 @@ from loguru import logger
 from taskiq import TaskiqMessage, TaskiqResult
 from taskiq.abc.middleware import TaskiqMiddleware
 
+from src.core.utils.message_payload import MessagePayload
+
 
 class ErrorMiddleware(TaskiqMiddleware):
     async def on_error(
@@ -28,8 +30,11 @@ class ErrorMiddleware(TaskiqMiddleware):
         await send_error_notification_task.kiq(
             error_id=message.task_id,
             traceback_str=traceback_str,
-            i18n_kwargs={
-                "user": False,
-                "error": f"{error_type_name}: {error_message.as_html()}",
-            },
+            payload=MessagePayload.not_deleted(
+                i18n_key="ntf-event-error",
+                i18n_kwargs={
+                    "user": False,
+                    "error": f"{error_type_name}: {error_message.as_html()}",
+                },
+            ),
         )

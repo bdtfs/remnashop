@@ -296,6 +296,14 @@ purchase-type = { $purchase_type ->
     *[OTHER] { $purchase_type }
 }
 
+traffic-strategy = { $strategy_type -> 
+    [NO_RESET] При оплате
+    [DAY] Каждый день
+    [WEEK] Каждую неделю
+    [MONTH] Каждый месяц
+    *[OTHER] { $strategy_type }
+    }
+
 language = { $language ->
     [ar] Арабский
     [az] Азербайджанский

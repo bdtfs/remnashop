@@ -57,7 +57,7 @@ class User(BaseSql, TimestampMixin):
     current_subscription: Mapped[Optional["Subscription"]] = relationship(
         "Subscription",
         foreign_keys=[current_subscription_id],
-        lazy="joined",
+        lazy="selectin",
     )
 
     subscriptions: Mapped[list["Subscription"]] = relationship(

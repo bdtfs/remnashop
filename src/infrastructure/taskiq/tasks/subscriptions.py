@@ -62,6 +62,7 @@ async def trial_subscription_task(
             traffic_limit=plan.traffic_limit,
             device_limit=plan.device_limit,
             internal_squads=plan.internal_squads,
+            external_squad=plan.external_squad,
             expire_at=created_user.expire_at,
             url=created_user.subscription_url,
             plan=plan,
@@ -100,13 +101,17 @@ async def trial_subscription_task(
         await send_error_notification_task.kiq(
             error_id=user.telegram_id,
             traceback_str=traceback_str,
-            i18n_kwargs={
-                "user": True,
-                "user_id": str(user.telegram_id),
-                "user_name": user.name,
-                "username": user.username or False,
-                "error": f"{error_type_name}: {error_message.as_html()}",
-            },
+            payload=MessagePayload.not_deleted(
+                i18n_key="ntf-event-error",
+                i18n_kwargs={
+                    "user": True,
+                    "user_id": str(user.telegram_id),
+                    "user_name": user.name,
+                    "username": user.username or False,
+                    "error": f"{error_type_name}: {error_message.as_html()}",
+                },
+                reply_markup=get_user_keyboard(user.telegram_id),
+            ),
         )
 
         await redirect_to_failed_subscription_task.kiq(user)
@@ -141,6 +146,7 @@ async def purchase_subscription_task(
                 traffic_limit=plan.traffic_limit,
                 device_limit=plan.device_limit,
                 internal_squads=plan.internal_squads,
+                external_squad=plan.external_squad,
                 expire_at=created_user.expire_at,
                 url=created_user.subscription_url,
                 plan=plan,
@@ -182,6 +188,7 @@ async def purchase_subscription_task(
                 traffic_limit=plan.traffic_limit,
                 device_limit=plan.device_limit,
                 internal_squads=plan.internal_squads,
+                external_squad=plan.external_squad,
                 expire_at=updated_user.expire_at,
                 url=updated_user.subscription_url,
                 plan=plan,
@@ -212,13 +219,17 @@ async def purchase_subscription_task(
         await send_error_notification_task.kiq(
             error_id=user.telegram_id,
             traceback_str=traceback_str,
-            i18n_kwargs={
-                "user": True,
-                "user_id": str(user.telegram_id),
-                "user_name": user.name,
-                "username": user.username or False,
-                "error": f"{error_type_name}: {error_message.as_html()}",
-            },
+            payload=MessagePayload.not_deleted(
+                i18n_key="ntf-event-error",
+                i18n_kwargs={
+                    "user": True,
+                    "user_id": str(user.telegram_id),
+                    "user_name": user.name,
+                    "username": user.username or False,
+                    "error": f"{error_type_name}: {error_message.as_html()}",
+                },
+                reply_markup=get_user_keyboard(user.telegram_id),
+            ),
         )
 
         await redirect_to_failed_subscription_task.kiq(user)
@@ -300,8 +311,6 @@ async def sync_current_subscription_task(
         logger.debug(f"No active subscription for user '{user.telegram_id}'")
         return
 
-    logger.success(remna_subscription)
     subscription = subscription.apply_sync(remna_subscription)
-    logger.success(subscription)
     await subscription_service.update(subscription)
     logger.info(f"Subscription for '{telegram_id}' successfully synchronized")

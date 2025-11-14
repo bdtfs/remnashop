@@ -14,8 +14,10 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Format
 from magic_filter import F
+from remnawave.enums.users import TrafficLimitStrategy
 
 from src.bot.keyboards import main_menu_button
+from src.bot.routers.extra.test import show_dev_popup
 from src.bot.states import DashboardRemnashop, RemnashopPlans
 from src.bot.widgets import Banner, I18nFormat, IgnoreUpdate
 from src.core.enums import BannerName, Currency, PlanAvailability, PlanType
@@ -24,11 +26,17 @@ from .getters import (
     allowed_users_getter,
     availability_getter,
     configurator_getter,
+    description_getter,
     durations_getter,
+    external_squads_getter,
+    internal_squads_getter,
+    name_getter,
     plans_getter,
     price_getter,
     prices_getter,
     squads_getter,
+    tag_getter,
+    traffic_getter,
     type_getter,
 )
 from .handlers import (
@@ -38,16 +46,23 @@ from .handlers import (
     on_availability_select,
     on_confirm_plan,
     on_currency_select,
+    on_description_delete,
+    on_description_input,
     on_devices_input,
     on_duration_input,
     on_duration_remove,
     on_duration_select,
+    on_external_squad_select,
+    on_internal_squad_select,
     on_name_input,
-    on_plan_remove,
+    on_plan_delete,
+    on_plan_move,
     on_plan_select,
     on_price_input,
-    on_squad_select,
     on_squads,
+    on_strategy_select,
+    on_tag_delete,
+    on_tag_input,
     on_traffic_input,
     on_type_select,
 )
@@ -74,9 +89,9 @@ plans = Window(
                 on_click=on_plan_select,
             ),
             Button(
-                text=Format("❌"),
-                id="remove_plan",
-                on_click=on_plan_remove,
+                text=Format("🔼"),
+                id="move_plan",
+                on_click=on_plan_move,
             ),
         ),
         id="plans_list",
@@ -101,15 +116,22 @@ configurator = Window(
     Banner(BannerName.DASHBOARD),
     I18nFormat("msg-plan-configurator"),
     Row(
+        Button(
+            text=I18nFormat("btn-plan-active", is_active=F["is_active"]),
+            id="active_toggle",
+            on_click=on_active_toggle,
+        ),
+    ),
+    Row(
         SwitchTo(
             text=I18nFormat("btn-plan-name"),
             id="name",
             state=RemnashopPlans.NAME,
         ),
         SwitchTo(
-            text=I18nFormat("btn-plan-type"),
-            id="type",
-            state=RemnashopPlans.TYPE,
+            text=I18nFormat("btn-plan-description"),
+            id="description",
+            state=RemnashopPlans.DESCRIPTION,
         ),
     ),
     Row(
@@ -118,10 +140,10 @@ configurator = Window(
             id="availability",
             state=RemnashopPlans.AVAILABILITY,
         ),
-        Button(
-            text=I18nFormat("btn-plan-active", is_active=F["is_active"]),
-            id="active_toggle",
-            on_click=on_active_toggle,
+        SwitchTo(
+            text=I18nFormat("btn-plan-type"),
+            id="type",
+            state=RemnashopPlans.TYPE,
         ),
     ),
     Row(
@@ -140,9 +162,14 @@ configurator = Window(
     ),
     Row(
         SwitchTo(
-            text=I18nFormat("btn-plan-durations-prices"),
-            id="durations_prices",
-            state=RemnashopPlans.DURATIONS,
+            text=I18nFormat("btn-plan-tag"),
+            id="tag",
+            state=RemnashopPlans.TAG,
+        ),
+        Button(
+            text=I18nFormat("btn-plan-squads"),
+            id="squads",
+            on_click=on_squads,
         ),
     ),
     Row(
@@ -154,18 +181,32 @@ configurator = Window(
         ),
     ),
     Row(
-        Button(
-            text=I18nFormat("btn-plan-squads"),
-            id="squads",
-            on_click=on_squads,
+        SwitchTo(
+            text=I18nFormat("btn-plan-durations-prices"),
+            id="durations_prices",
+            state=RemnashopPlans.DURATIONS,
         ),
     ),
     Row(
         Button(
-            text=I18nFormat("btn-plan-confirm"),
-            id="confirm",
+            text=I18nFormat("btn-plan-create"),
+            id="create",
             on_click=on_confirm_plan,
         ),
+        when=~F["is_edit"],
+    ),
+    Row(
+        Button(
+            text=I18nFormat("btn-plan-save"),
+            id="save",
+            on_click=on_confirm_plan,
+        ),
+        Button(
+            text=I18nFormat("btn-plan-delete"),
+            id="delete_plan",
+            on_click=on_plan_delete,
+        ),
+        when=F["is_edit"],
     ),
     Row(
         Start(
@@ -193,7 +234,57 @@ plan_name = Window(
     MessageInput(func=on_name_input),
     IgnoreUpdate(),
     state=RemnashopPlans.NAME,
+    getter=name_getter,
 )
+
+plan_description = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-plan-description"),
+    Row(
+        Button(
+            text=I18nFormat("btn-plan-description-remove"),
+            id="remove",
+            on_click=on_description_delete,
+        ),
+        when=F["description"],
+    ),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-back"),
+            id="back",
+            state=RemnashopPlans.CONFIGURATOR,
+        ),
+    ),
+    MessageInput(func=on_description_input),
+    IgnoreUpdate(),
+    state=RemnashopPlans.DESCRIPTION,
+    getter=description_getter,
+)
+
+plan_tag = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-plan-tag"),
+    Row(
+        Button(
+            text=I18nFormat("btn-plan-tag-remove"),
+            id="remove",
+            on_click=on_tag_delete,
+        ),
+        when=F["tag"],
+    ),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-back"),
+            id="back",
+            state=RemnashopPlans.CONFIGURATOR,
+        ),
+    ),
+    MessageInput(func=on_tag_input),
+    IgnoreUpdate(),
+    state=RemnashopPlans.TAG,
+    getter=tag_getter,
+)
+
 
 plan_type = Window(
     Banner(BannerName.DASHBOARD),
@@ -248,6 +339,20 @@ plan_availability = Window(
 plan_traffic = Window(
     Banner(BannerName.DASHBOARD),
     I18nFormat("msg-plan-traffic"),
+    Column(
+        Select(
+            text=I18nFormat(
+                "btn-plan-traffic-strategy-choice",
+                strategy_type=F["item"]["strategy"],
+                selected=F["item"]["selected"],
+            ),
+            id="select_strategy",
+            item_id_getter=lambda item: item["strategy"].value,
+            items="strategys",
+            type_factory=TrafficLimitStrategy,
+            on_click=on_strategy_select,
+        ),
+    ),
     Row(
         SwitchTo(
             text=I18nFormat("btn-back"),
@@ -258,6 +363,7 @@ plan_traffic = Window(
     MessageInput(func=on_traffic_input),
     IgnoreUpdate(),
     state=RemnashopPlans.TRAFFIC,
+    getter=traffic_getter,
 )
 
 plan_devices = Window(
@@ -411,18 +517,19 @@ plan_allowed_users = Window(
 plan_squads = Window(
     Banner(BannerName.DASHBOARD),
     I18nFormat("msg-plan-squads"),
-    Column(
-        Select(
-            text=I18nFormat(
-                "btn-squad-choice",
-                name=F["item"]["name"],
-                selected=F["item"]["selected"],
-            ),
-            id="select_squad",
-            item_id_getter=lambda item: item["uuid"],
-            items="squads",
-            type_factory=UUID,
-            on_click=on_squad_select,
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-plan-internal-squads"),
+            id="internal",
+            state=RemnashopPlans.INTERNAL_SQUADS,
+        ),
+    ),
+    Row(
+        Button(
+            text=I18nFormat("btn-plan-external-squads"),
+            id="external",
+            # state=RemnashopPlans.EXTERNAL_SQUADS,
+            on_click=show_dev_popup,
         ),
     ),
     Row(
@@ -437,10 +544,70 @@ plan_squads = Window(
     getter=squads_getter,
 )
 
+plan_internal_squads = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-plan-internal-squads"),
+    Column(
+        Select(
+            text=I18nFormat(
+                "btn-squad-choice",
+                name=F["item"]["name"],
+                selected=F["item"]["selected"],
+            ),
+            id="select_squad",
+            item_id_getter=lambda item: item["uuid"],
+            items="squads",
+            type_factory=UUID,
+            on_click=on_internal_squad_select,
+        ),
+    ),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-back"),
+            id="back",
+            state=RemnashopPlans.SQUADS,
+        ),
+    ),
+    IgnoreUpdate(),
+    state=RemnashopPlans.INTERNAL_SQUADS,
+    getter=internal_squads_getter,
+)
+
+plan_external_squads = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-plan-external-squads"),
+    Column(
+        Select(
+            text=I18nFormat(
+                "btn-squad-choice",
+                name=F["item"]["name"],
+                selected=F["item"]["selected"],
+            ),
+            id="select_squad",
+            item_id_getter=lambda item: item["uuid"],
+            items="squads",
+            type_factory=UUID,
+            on_click=on_external_squad_select,
+        ),
+    ),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-back"),
+            id="back",
+            state=RemnashopPlans.SQUADS,
+        ),
+    ),
+    IgnoreUpdate(),
+    state=RemnashopPlans.EXTERNAL_SQUADS,
+    getter=external_squads_getter,
+)
+
 router = Dialog(
     plans,
     configurator,
     plan_name,
+    plan_description,
+    plan_tag,
     plan_type,
     plan_availability,
     plan_traffic,
@@ -451,4 +618,6 @@ router = Dialog(
     plan_price,
     plan_allowed_users,
     plan_squads,
+    plan_internal_squads,
+    plan_external_squads,
 )

@@ -31,7 +31,6 @@ async def user_getter(
     config: AppConfig,
     user: UserDto,
     user_service: FromDishka[UserService],
-    subscription_service: FromDishka[SubscriptionService],
     **kwargs: Any,
 ) -> dict[str, Any]:
     dialog_manager.dialog_data.pop("payload", None)
@@ -43,7 +42,7 @@ async def user_getter(
     if not target_user:
         raise ValueError(f"User '{target_telegram_id}' not found")
 
-    subscription = await subscription_service.get_current(target_telegram_id)
+    subscription = target_user.current_subscription
 
     if not subscription:
         return {
@@ -86,7 +85,6 @@ async def user_getter(
 async def subscription_getter(
     dialog_manager: DialogManager,
     user_service: FromDishka[UserService],
-    subscription_service: FromDishka[SubscriptionService],
     remnawave_service: FromDishka[RemnawaveService],
     **kwargs: Any,
 ) -> dict[str, Any]:
@@ -96,7 +94,7 @@ async def subscription_getter(
     if not target_user:
         raise ValueError(f"User '{target_telegram_id}' not found")
 
-    subscription = await subscription_service.get_current(target_telegram_id)
+    subscription = target_user.current_subscription
 
     if not subscription:
         raise ValueError(f"Current subscription for user '{target_telegram_id}' not found")
@@ -259,7 +257,6 @@ async def squads_getter(
 async def expire_time_getter(
     dialog_manager: DialogManager,
     user_service: FromDishka[UserService],
-    subscription_service: FromDishka[SubscriptionService],
     **kwargs: Any,
 ) -> dict[str, Any]:
     target_telegram_id = dialog_manager.dialog_data["target_telegram_id"]
@@ -268,7 +265,7 @@ async def expire_time_getter(
     if not target_user:
         raise ValueError(f"User '{target_telegram_id}' not found")
 
-    subscription = await subscription_service.get_current(target_telegram_id)
+    subscription = target_user.current_subscription
 
     if not subscription:
         raise ValueError(f"Current subscription for user '{target_telegram_id}' not found")

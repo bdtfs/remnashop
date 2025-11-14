@@ -8,7 +8,8 @@ BASE_DIR: Final[Path] = Path(__file__).resolve().parents[2]
 ASSETS_DIR: Final[Path] = BASE_DIR / "assets"
 LOG_DIR: Final[Path] = BASE_DIR / "logs"
 
-DOMAIN_REGEX: Final[str] = r"^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$"
+DOMAIN_REGEX: Pattern[str] = re.compile(r"^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$")
+TAG_REGEX: Pattern[str] = re.compile(r"^[A-Z0-9_]+$")
 URL_PATTERN: Pattern[str] = re.compile(
     r"https://(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)"
 )

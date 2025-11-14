@@ -101,13 +101,13 @@ class RemnawaveService(BaseService):
                 expire_at=format_days_to_datetime(plan.duration),
                 username=user.remna_name,
                 traffic_limit_bytes=format_gb_to_bytes(plan.traffic_limit),
-                # traffic_limit_strategy=,
+                traffic_limit_strategy=plan.traffic_limit_strategy,
                 description=user.remna_description,
-                # tag=,
+                tag=plan.tag,
                 telegram_id=user.telegram_id,
                 hwid_device_limit=format_device_count(plan.device_limit),
                 active_internal_squads=plan.internal_squads,
-                # external_squad_uuid=,
+                external_squad_uuid=plan.external_squad,
             )
         )
 
@@ -126,22 +126,28 @@ class RemnawaveService(BaseService):
         reset_traffic: bool = False,
     ) -> UserResponseDto:
         if subscription:
+            logger.info(
+                f"Updating RemnaUser '{user.telegram_id}' from subscription '{subscription.id}'"
+            )
             status = subscription.status
             traffic_limit = subscription.traffic_limit
             device_limit = subscription.device_limit
             internal_squads = subscription.internal_squads
+            external_squad = subscription.external_squad
             expire_at = subscription.expire_at
-            logger.info(
-                f"Updating RemnaUser '{user.telegram_id}' from subscription '{subscription.id}'"
-            )
+            tag = subscription.plan.tag
+            strategy = subscription.plan.traffic_limit_strategy
+
         elif plan:
+            logger.info(f"Updating RemnaUser '{user.telegram_id}' from plan '{plan.name}'")
             status = SubscriptionStatus.ACTIVE
             traffic_limit = plan.traffic_limit
             device_limit = plan.device_limit
             internal_squads = plan.internal_squads
+            external_squad = plan.external_squad
             expire_at = format_days_to_datetime(plan.duration)
-
-            logger.info(f"Updating RemnaUser '{user.telegram_id}' from plan '{plan.name}'")
+            tag = plan.tag
+            strategy = plan.traffic_limit_strategy
         else:
             raise ValueError("Either 'plan' or 'subscription' must be provided")
 
@@ -149,15 +155,15 @@ class RemnawaveService(BaseService):
             UpdateUserRequestDto(
                 uuid=uuid,
                 active_internal_squads=internal_squads,
-                # external_squad_uuid=,
+                external_squad_uuid=external_squad,
                 description=user.remna_description,
-                # tag=,
+                tag=tag,
                 expire_at=expire_at,
                 hwid_device_limit=format_device_count(device_limit),
                 status=status,
                 telegram_id=user.telegram_id,
                 traffic_limit_bytes=format_gb_to_bytes(traffic_limit),
-                # traffic_limit_strategy=,
+                traffic_limit_strategy=strategy,
             )
         )
 

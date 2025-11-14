@@ -95,9 +95,8 @@ async def on_device_delete(
     await sub_manager.load_data()
     selected_device = sub_manager.item_id
     user: UserDto = sub_manager.middleware_data[USER_KEY]
-    subscription = user.current_subscription
 
-    if subscription and subscription.device_limit:
+    if user.current_subscription and user.current_subscription.device_limit:
         await remnawave_service.delete_device(user=user, hwid=selected_device)
         logger.info(f"{log(user)} Deleted self device '{selected_device}'")
 

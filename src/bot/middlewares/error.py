@@ -5,7 +5,9 @@ from aiogram.types import ErrorEvent, TelegramObject
 from aiogram.types import User as AiogramUser
 from aiogram.utils.formatting import Text
 
+from src.bot.keyboards import get_user_keyboard
 from src.core.enums import MiddlewareEventType
+from src.core.utils.message_payload import MessagePayload
 from src.infrastructure.taskiq.tasks.notifications import send_error_notification_task
 from src.infrastructure.taskiq.tasks.redirects import redirect_to_main_menu_task
 
@@ -40,16 +42,23 @@ class ErrorMiddleware(EventTypedMiddleware):
         error_type_name = type(error_event.exception).__name__
         error_message = Text(str(error_event.exception)[:512])
 
-        if user_id:
-            await redirect_to_main_menu_task.kiq(user_id)
+        if aiogram_user:
+            reply_markup = get_user_keyboard(aiogram_user.id)
+            await redirect_to_main_menu_task.kiq(aiogram_user.id)
+        else:
+            reply_markup = None
 
         await send_error_notification_task.kiq(
             error_id=user_id or error_event.update.update_id,
             traceback_str=traceback_str,
-            i18n_kwargs={
-                **user_data,
-                "error": f"{error_type_name}: {error_message.as_html()}",
-            },
+            payload=MessagePayload.not_deleted(
+                i18n_key="ntf-event-error",
+                i18n_kwargs={
+                    **user_data,
+                    "error": f"{error_type_name}: {error_message.as_html()}",
+                },
+                reply_markup=reply_markup,
+            ),
         )
 
         return await handler(event, data)

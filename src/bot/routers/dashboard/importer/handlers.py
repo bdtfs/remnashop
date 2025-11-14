@@ -15,6 +15,7 @@ from src.bot.states import DashboardImporter
 from src.core.constants import USER_KEY
 from src.core.utils.formatters import format_user_log as log
 from src.core.utils.message_payload import MessagePayload
+from src.core.utils.validators import is_double_click
 from src.infrastructure.database.models.dto import UserDto
 from src.infrastructure.taskiq.tasks.importer import (
     import_exported_users_task,
@@ -226,35 +227,41 @@ async def on_sync(
     widget: Button,
     dialog_manager: DialogManager,
     notification_service: FromDishka[NotificationService],
-    importer_service: FromDishka[ImporterService],
 ) -> None:
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
     selected_bot = callback.data
     dialog_manager.dialog_data["selected_bot"] = selected_bot
 
-    await notification_service.notify_user(
-        user=user,
-        payload=MessagePayload(i18n_key="ntf-importer-sync-started"),
-    )
-
-    task = await sync_all_users_from_panel_task.kiq()
-    result = await task.wait_result()
-    users = result.return_value
-
-    if not users:
-        await notification_service.notify_user(
+    if is_double_click(
+        dialog_manager,
+        key="sync_confirm",
+        cooldown=10,
+    ):
+        notification = await notification_service.notify_user(
             user=user,
-            payload=MessagePayload(i18n_key="ntf-importer-users-not-found"),
+            payload=MessagePayload.not_deleted(i18n_key="ntf-importer-sync-started"),
         )
+
+        task = await sync_all_users_from_panel_task.kiq()
+        result = await task.wait_result()
+        result = result.return_value
+
+        if not result:
+            await notification_service.notify_user(
+                user=user,
+                payload=MessagePayload(i18n_key="ntf-importer-users-not-found"),
+            )
+            return
+
+        dialog_manager.dialog_data["completed"] = result
+
+        if notification:
+            await notification.delete()
+
+        await dialog_manager.switch_to(state=DashboardImporter.SYNC_COMPLETED)
         return
 
-    logger.success(users)
-    # users = importer_service.transform_remna_users(users)
-    # active, expired = importer_service.split_active_and_expired(users)
-    # dialog_manager.dialog_data["users"] = {
-    #     "all": users,
-    #     "active": active,
-    #     "expired": expired,
-    # }
-
-    # await dialog_manager.switch_to(state=DashboardImporter.SYNC_COMPLETED)
+    await notification_service.notify_user(
+        user=user,
+        payload=MessagePayload(i18n_key="ntf-double-click-confirm"),
+    )

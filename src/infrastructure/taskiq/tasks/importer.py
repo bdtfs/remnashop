@@ -1,3 +1,4 @@
+from typing import Union
 from uuid import UUID
 
 from dishka.integrations.taskiq import FromDishka, inject
@@ -83,7 +84,6 @@ async def sync_all_users_from_panel_task(
 
     while True:
         response = await remnawave.users.get_all_users_v2(start=start, size=size)
-        logger.success(response)
         if not isinstance(response, UsersResponseDto) or not response.users:
             break
 
@@ -99,7 +99,8 @@ async def sync_all_users_from_panel_task(
     logger.info(f"Total users in panel: '{len(all_remna_users)}'")
     logger.info(f"Total users in bot: '{len(bot_users)}'")
 
-    added = 0
+    added_users = 0
+    added_subscription = 0
     updated = 0
     errors = 0
     missing_telegram = 0
@@ -114,12 +115,12 @@ async def sync_all_users_from_panel_task(
 
             if not user:
                 await create_user_from_panel_task.kiq(remna_user)
-                added += 1
+                added_users += 1
             else:
                 current_subscription = await subscription_service.get_current(user.telegram_id)
                 if not current_subscription:
                     await create_user_from_panel_task.kiq(remna_user)
-                    added += 1
+                    added_subscription += 1
                 else:
                     logger.success(remna_user.hwid_device_limit)
                     remna_subscription = RemnaSubscriptionDto.from_remna_user(
@@ -140,7 +141,8 @@ async def sync_all_users_from_panel_task(
     result = {
         "total_panel_users": len(all_remna_users),
         "total_bot_users": len(bot_users),
-        "added": added,
+        "added_users": added_users,
+        "added_subscription": added_subscription,
         "updated": updated,
         "errors": errors,
         "missing_telegram": missing_telegram,
@@ -153,11 +155,14 @@ async def sync_all_users_from_panel_task(
 @broker.task
 @inject
 async def create_user_from_panel_task(
-    remna_user: RemnaUserDto,
+    remna_user: Union[RemnaUserDto, dict],
     user_service: FromDishka[UserService],
     subscription_service: FromDishka[SubscriptionService],
     remnawave_service: FromDishka[RemnawaveService],
 ) -> None:
+    if isinstance(remna_user, dict):
+        remna_user = UserResponseDto.model_validate(remna_user, strict=False, by_name=True)
+
     if not remna_user.telegram_id:
         logger.warning(f"Skipping user creation for '{remna_user.username}', missing 'telegram_id'")
         return
@@ -177,6 +182,7 @@ async def create_user_from_panel_task(
     temp_plan = PlanSnapshotDto(
         id=-1,
         name=IMPORTED_TAG,
+        tag=remna_subscription.tag,
         type=format_limits_to_plan_type(
             remna_subscription.traffic_limit,
             remna_subscription.device_limit,
@@ -184,7 +190,9 @@ async def create_user_from_panel_task(
         traffic_limit=remna_subscription.traffic_limit,
         device_limit=remna_subscription.device_limit,
         duration=-1,
+        traffic_limit_strategy=remna_subscription.traffic_limit_strategy,
         internal_squads=remna_subscription.internal_squads,
+        external_squad=remna_subscription.external_squad,
     )
     subscription = SubscriptionDto(
         user_remna_id=remna_user.uuid,
@@ -192,6 +200,7 @@ async def create_user_from_panel_task(
         traffic_limit=temp_plan.traffic_limit,
         device_limit=temp_plan.device_limit,
         internal_squads=remna_subscription.internal_squads,
+        external_squad=remna_subscription.external_squad,
         expire_at=remna_user.expire_at,
         url=remna_subscription.url,
         plan=temp_plan,

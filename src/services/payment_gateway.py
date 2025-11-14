@@ -52,7 +52,6 @@ from .base import BaseService
 from .transaction import TransactionService
 
 
-# TODO: Make payment gateway sorting customizable for display
 class PaymentGatewayService(BaseService):
     uow: UnitOfWork
     transaction_service: TransactionService
@@ -147,8 +146,8 @@ class PaymentGatewayService(BaseService):
         logger.debug(f"Retrieved payment gateway of type '{gateway_type}'")
         return PaymentGatewayDto.from_model(db_gateway, decrypt=True)
 
-    async def get_all(self) -> list[PaymentGatewayDto]:
-        db_gateways = await self.uow.repository.gateways.get_all()
+    async def get_all(self, sorted: bool = False) -> list[PaymentGatewayDto]:
+        db_gateways = await self.uow.repository.gateways.get_all(sorted)
         logger.debug(f"Retrieved '{len(db_gateways)}' payment gateways")
         return PaymentGatewayDto.from_model_list(db_gateways, decrypt=False)
 
@@ -177,6 +176,29 @@ class PaymentGatewayService(BaseService):
         db_gateways = await self.uow.repository.gateways.filter_active(is_active)
         logger.debug(f"Filtered active gateways: '{is_active}', found '{len(db_gateways)}'")
         return PaymentGatewayDto.from_model_list(db_gateways, decrypt=False)
+
+    async def move_gateway_up(self, gateway_id: int) -> bool:
+        db_gateways = await self.uow.repository.gateways.get_all()
+        db_gateways.sort(key=lambda p: p.order_index)
+
+        index = next((i for i, p in enumerate(db_gateways) if p.id == gateway_id), None)
+        if index is None:
+            logger.warning(f"Payment gateway with ID '{gateway_id}' not found for move operation")
+            return False
+
+        if index == 0:
+            gateway = db_gateways.pop(0)
+            db_gateways.append(gateway)
+            logger.debug(f"Payment gateway '{gateway_id}' moved from top to bottom")
+        else:
+            db_gateways[index - 1], db_gateways[index] = db_gateways[index], db_gateways[index - 1]
+            logger.debug(f"Payment gateway '{gateway_id}' moved up one position")
+
+        for i, gateway in enumerate(db_gateways, start=1):
+            gateway.order_index = i
+
+        logger.info(f"Payment gateway '{gateway_id}' reorder successfully")
+        return True
 
     #
 

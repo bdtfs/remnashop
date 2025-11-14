@@ -12,6 +12,7 @@ from .validators import validate_not_change_me
 
 class RemnawaveConfig(BaseConfig, env_prefix="REMNAWAVE_"):
     host: SecretStr
+    port: int = 3000
     token: SecretStr
     caddy_token: SecretStr = SecretStr("")
     webhook_secret: SecretStr
@@ -27,7 +28,7 @@ class RemnawaveConfig(BaseConfig, env_prefix="REMNAWAVE_"):
             url = f"https://{self.host.get_secret_value()}"
             return SecretStr(url)
         else:
-            url = f"http://{self.host.get_secret_value()}:3000"
+            url = f"http://{self.host.get_secret_value()}:{self.port}"
             return SecretStr(url)
 
     @property

@@ -80,9 +80,7 @@ async def devices_getter(
     remnawave_service: FromDishka[RemnawaveService],
     **kwargs: Any,
 ) -> dict[str, Any]:
-    subscription = user.current_subscription
-
-    if not subscription:
+    if not user.current_subscription:
         raise ValueError(f"Current subscription for user '{user.telegram_id}' not found")
 
     devices = await remnawave_service.get_devices_user(user)
@@ -99,7 +97,7 @@ async def devices_getter(
 
     return {
         "current_count": len(devices),
-        "max_count": i18n_format_device_limit(subscription.device_limit),
+        "max_count": i18n_format_device_limit(user.current_subscription.device_limit),
         "devices": formatted_devices,
         "devices_empty": len(devices) == 0,
     }

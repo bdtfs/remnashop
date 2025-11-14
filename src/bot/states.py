@@ -101,6 +101,7 @@ class RemnashopGateways(StatesGroup):
     SETTINGS = State()
     FIELD = State()
     CURRENCY = State()
+    PLACEMENT = State()
 
 
 class RemnashopNotifications(StatesGroup):
@@ -113,6 +114,8 @@ class RemnashopPlans(StatesGroup):
     MAIN = State()
     CONFIGURATOR = State()
     NAME = State()
+    DESCRIPTION = State()
+    TAG = State()
     TYPE = State()
     AVAILABILITY = State()
     TRAFFIC = State()
@@ -123,6 +126,8 @@ class RemnashopPlans(StatesGroup):
     PRICE = State()
     ALLOWED = State()
     SQUADS = State()
+    INTERNAL_SQUADS = State()
+    EXTERNAL_SQUADS = State()
 
 
 class DashboardRemnawave(StatesGroup):

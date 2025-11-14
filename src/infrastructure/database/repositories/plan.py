@@ -19,7 +19,7 @@ class PlanRepository(BaseRepository):
         return await self._get_one(Plan, Plan.name == name)
 
     async def get_all(self) -> list[Plan]:
-        return await self._get_many(Plan)
+        return await self._get_many(Plan, order_by=Plan.order_index.asc())
 
     async def update(self, plan: Plan) -> Optional[Plan]:
         return await self.merge_instance(plan)
@@ -37,7 +37,11 @@ class PlanRepository(BaseRepository):
         return await self._get_many(Plan, Plan.availability == availability)
 
     async def filter_active(self, is_active: bool) -> list[Plan]:
-        return await self._get_many(Plan, Plan.is_active == is_active)
+        return await self._get_many(
+            Plan,
+            Plan.is_active == is_active,
+            order_by=Plan.order_index.asc(),
+        )
 
     async def get_max_index(self) -> Optional[int]:
         return await self.session.scalar(select(func.max(Plan.order_index)))

@@ -39,25 +39,16 @@ async def send_remnashop_notification_task(
 async def send_error_notification_task(
     error_id: Union[str, int],
     traceback_str: str,
-    i18n_kwargs: dict[str, Any],
+    payload: MessagePayload,
     notification_service: FromDishka[NotificationService],
-    i18n_key: str = "ntf-event-error",
 ) -> None:
     file_data = BufferedInputFile(
         file=traceback_str.encode(),
         filename=f"error_{error_id}.txt",
     )
-
-    await notification_service.notify_super_dev(
-        payload=MessagePayload(
-            i18n_key=i18n_key,
-            i18n_kwargs=i18n_kwargs,
-            media=file_data,
-            media_type=MediaType.DOCUMENT,
-            auto_delete_after=None,
-            add_close_button=True,
-        ),
-    )
+    payload.media = file_data
+    payload.media_type = MediaType.DOCUMENT
+    await notification_service.notify_super_dev(payload=payload)
 
 
 @broker.task

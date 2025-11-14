@@ -57,5 +57,5 @@ class Subscription(BaseSql, TimestampMixin):
         back_populates="subscriptions",
         primaryjoin="Subscription.user_telegram_id==User.telegram_id",
         foreign_keys="Subscription.user_telegram_id",
-        lazy="joined",
+        lazy="selectin",
     )

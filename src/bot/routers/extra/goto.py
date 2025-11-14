@@ -27,12 +27,14 @@ async def on_goto(callback: CallbackQuery, dialog_manager: DialogManager, user: 
             mode=StartMode.RESET_STACK,
             show_mode=ShowMode.DELETE_AND_SEND,
         )
+        await callback.answer()
         return
 
     state = state_from_string(data)
 
     if not state:
         logger.warning(f"{log(user)} Trying go to not exist state '{data}'")
+        await callback.answer()
         return
 
     if state == DashboardUser.MAIN:
@@ -50,9 +52,10 @@ async def on_goto(callback: CallbackQuery, dialog_manager: DialogManager, user: 
             state=DashboardUser.MAIN,
             data={"target_telegram_id": target_telegram_id},
             mode=StartMode.RESET_STACK,
-            show_mode=ShowMode.EDIT,
+            show_mode=ShowMode.DELETE_AND_SEND,
         )
         logger.debug(f"{log(user)} Redirected to user '{target_telegram_id}'")
+        await callback.answer()
         return
 
     logger.debug(f"{log(user)} Redirected to '{state}'")
@@ -64,3 +67,4 @@ async def on_goto(callback: CallbackQuery, dialog_manager: DialogManager, user: 
         mode=StartMode.RESET_STACK,
         show_mode=ShowMode.DELETE_AND_SEND,
     )
+    await callback.answer()

@@ -16,7 +16,6 @@ from .base import BaseService
 
 
 # TODO: Implement logic for plan availability for specific gateways
-# TODO: Make plan sorting customizable for display
 # TODO: Implement general discount for plan
 class PlanService(BaseService):
     uow: UnitOfWork
@@ -161,6 +160,29 @@ class PlanService(BaseService):
             logger.debug(f"No plans found with availability '{PlanAvailability.ALLOWED}'")
 
         return PlanDto.from_model_list(db_plans)
+
+    async def move_plan_up(self, plan_id: int) -> bool:
+        db_plans = await self.uow.repository.plans.get_all()
+        db_plans.sort(key=lambda p: p.order_index)
+
+        index = next((i for i, p in enumerate(db_plans) if p.id == plan_id), None)
+        if index is None:
+            logger.warning(f"Plan with ID '{plan_id}' not found for move operation")
+            return False
+
+        if index == 0:
+            plan = db_plans.pop(0)
+            db_plans.append(plan)
+            logger.debug(f"Plan '{plan_id}' moved from top to bottom")
+        else:
+            db_plans[index - 1], db_plans[index] = db_plans[index], db_plans[index - 1]
+            logger.debug(f"Plan '{plan_id}' moved up one position")
+
+        for i, plan in enumerate(db_plans, start=1):
+            plan.order_index = i
+
+        logger.info(f"Plan '{plan_id}' reorder successfully")
+        return True
 
     #
 

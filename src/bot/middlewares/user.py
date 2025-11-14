@@ -49,15 +49,13 @@ class UserMiddleware(EventTypedMiddleware):
         if user is None:
             user = await user_service.create(aiogram_user)
             await notification_service.system_notify(
-                payload=MessagePayload(
+                payload=MessagePayload.not_deleted(
                     i18n_key="ntf-event-new-user",
                     i18n_kwargs={
                         "user_id": str(user.telegram_id),
                         "user_name": user.name,
                         "username": user.username or False,
                     },
-                    auto_delete_after=None,
-                    add_close_button=True,
                     reply_markup=get_user_keyboard(user.telegram_id),
                 ),
                 ntf_type=SystemNotificationType.USER_REGISTERED,

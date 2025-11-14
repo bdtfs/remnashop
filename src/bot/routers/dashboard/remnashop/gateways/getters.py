@@ -98,3 +98,25 @@ async def currency_getter(
             for currency in Currency
         ]
     }
+
+
+@inject
+async def placement_getter(
+    dialog_manager: DialogManager,
+    payment_gateway_service: FromDishka[PaymentGatewayService],
+    **kwargs: Any,
+) -> dict[str, Any]:
+    gateways: list[PaymentGatewayDto] = await payment_gateway_service.get_all(sorted=True)
+
+    formatted_gateways = [
+        {
+            "id": gateway.id,
+            "gateway_type": gateway.type,
+            "is_active": gateway.is_active,
+        }
+        for gateway in gateways
+    ]
+
+    return {
+        "gateways": formatted_gateways,
+    }

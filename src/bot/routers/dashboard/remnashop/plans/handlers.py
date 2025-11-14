@@ -3,17 +3,18 @@ from typing import Optional
 from uuid import UUID
 
 from aiogram.types import CallbackQuery, Message
-from aiogram_dialog import DialogManager, ShowMode, SubManager
+from aiogram_dialog import DialogManager, ShowMode, StartMode, SubManager
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, Select
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 from loguru import logger
 from remnawave import RemnawaveSDK
+from remnawave.enums.users import TrafficLimitStrategy
 from remnawave.models import GetAllInternalSquadsResponseDto
 
 from src.bot.states import RemnashopPlans
-from src.core.constants import USER_KEY
+from src.core.constants import TAG_REGEX, USER_KEY
 from src.core.enums import Currency, PlanAvailability, PlanType
 from src.core.utils.adapter import DialogDataAdapter
 from src.core.utils.formatters import format_user_log as log
@@ -44,36 +45,59 @@ async def on_plan_select(
     adapter = DialogDataAdapter(sub_manager.manager)
     adapter.save(plan)
 
+    sub_manager.manager.dialog_data["is_edit"] = True
     await sub_manager.switch_to(state=RemnashopPlans.CONFIGURATOR)
 
 
 @inject
-async def on_plan_remove(
+async def on_plan_move(
     callback: CallbackQuery,
     widget: Button,
     sub_manager: SubManager,
-    notification_service: FromDishka[NotificationService],
     plan_service: FromDishka[PlanService],
 ) -> None:
     await sub_manager.load_data()
     user: UserDto = sub_manager.middleware_data[USER_KEY]
-
     plan_id = int(sub_manager.item_id)
 
-    if is_double_click(sub_manager.manager, key=f"delete_confirm_{plan_id}", cooldown=10):
-        await plan_service.delete(plan_id)
+    moved = await plan_service.move_plan_up(plan_id)
+    if moved:
+        logger.info(f"{log(user)} Moved plan '{plan_id}' up successfully")
+    else:
+        logger.warning(f"{log(user)} Failed to move plan '{plan_id}' up")
+
+
+@inject
+async def on_plan_delete(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: SubManager,
+    notification_service: FromDishka[NotificationService],
+    plan_service: FromDishka[PlanService],
+) -> None:
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+
+    adapter = DialogDataAdapter(dialog_manager)
+    plan = adapter.load(PlanDto)
+
+    if not plan:
+        raise ValueError("PlanDto not found in dialog data")
+
+    if is_double_click(dialog_manager, key=f"delete_confirm_{plan.id}", cooldown=10):
+        await plan_service.delete(plan.id)  # type: ignore[arg-type]
         await notification_service.notify_user(
             user=user,
             payload=MessagePayload(i18n_key="ntf-plan-deleted-success"),
         )
-        logger.info(f"{log(user)} Deleted plan ID '{plan_id}'")
+        logger.info(f"{log(user)} Deleted plan ID '{plan.id}'")
+        await dialog_manager.start(state=RemnashopPlans.MAIN, mode=StartMode.RESET_STACK)
         return
 
     await notification_service.notify_user(
         user=user,
         payload=MessagePayload(i18n_key="ntf-double-click-confirm"),
     )
-    logger.debug(f"{log(user)} Clicked delete for plan ID '{plan_id}' (awaiting confirmation)")
+    logger.debug(f"{log(user)} Clicked delete for plan ID '{plan.id}' (awaiting confirmation)")
 
 
 @inject
@@ -115,6 +139,112 @@ async def on_name_input(
 
     logger.info(f"{log(user)} Successfully set plan name to '{plan.name}'")
     await dialog_manager.switch_to(state=RemnashopPlans.CONFIGURATOR)
+
+
+@inject
+async def on_description_input(
+    message: Message,
+    widget: MessageInput,
+    dialog_manager: DialogManager,
+    notification_service: FromDishka[NotificationService],
+) -> None:
+    dialog_manager.show_mode = ShowMode.EDIT
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    logger.debug(f"{log(user)} Attempted to set plan description")
+
+    if message.text is None:
+        logger.warning(f"{log(user)} Provided empty plan description input")
+        await notification_service.notify_user(
+            user=user,
+            payload=MessagePayload(i18n_key="ntf-plan-invalid-description"),
+        )
+        return
+
+    adapter = DialogDataAdapter(dialog_manager)
+    plan = adapter.load(PlanDto)
+
+    if not plan:
+        raise ValueError("PlanDto not found in dialog data")
+
+    plan.description = message.text
+    adapter.save(plan)
+
+    logger.info(f"{log(user)} Successfully set plan description to '{plan.description}'")
+
+
+async def on_description_delete(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    adapter = DialogDataAdapter(dialog_manager)
+    plan = adapter.load(PlanDto)
+
+    if not plan:
+        raise ValueError("PlanDto not found in dialog data")
+
+    plan.description = None
+    adapter.save(plan)
+    logger.info(f"{log(user)} Successfully removed plan description")
+
+
+@inject
+async def on_tag_input(
+    message: Message,
+    widget: MessageInput,
+    dialog_manager: DialogManager,
+    notification_service: FromDishka[NotificationService],
+) -> None:
+    dialog_manager.show_mode = ShowMode.EDIT
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    logger.debug(f"{log(user)} Attempted to set plan tag")
+
+    if message.text is None:
+        logger.warning(f"{log(user)} Provided empty plan tag input")
+        await notification_service.notify_user(
+            user=user,
+            payload=MessagePayload(i18n_key="ntf-plan-invalid-tag"),
+        )
+        return
+
+    tag = message.text.strip()
+
+    if not TAG_REGEX.fullmatch(tag):
+        logger.warning(f"{log(user)} Invalid plan tag input: '{tag}'")
+        await notification_service.notify_user(
+            user=user,
+            payload=MessagePayload(i18n_key="ntf-plan-invalid-tag"),
+        )
+        return
+
+    adapter = DialogDataAdapter(dialog_manager)
+    plan = adapter.load(PlanDto)
+
+    if not plan:
+        raise ValueError("PlanDto not found in dialog data")
+
+    plan.tag = message.text
+    adapter.save(plan)
+
+    logger.info(f"{log(user)} Successfully set plan tag to '{plan.tag}'")
+
+
+async def on_tag_delete(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    adapter = DialogDataAdapter(dialog_manager)
+    plan = adapter.load(PlanDto)
+
+    if not plan:
+        raise ValueError("PlanDto not found in dialog data")
+
+    plan.tag = None
+    adapter.save(plan)
+    logger.info(f"{log(user)} Successfully removed plan tag")
 
 
 async def on_type_select(
@@ -220,6 +350,27 @@ async def on_traffic_input(
 
     logger.info(f"{log(user)} Successfully set plan traffic limit to '{plan.traffic_limit}'")
     await dialog_manager.switch_to(state=RemnashopPlans.CONFIGURATOR)
+
+
+async def on_strategy_select(
+    callback: CallbackQuery,
+    widget: Select[TrafficLimitStrategy],
+    dialog_manager: DialogManager,
+    selected_strategy: TrafficLimitStrategy,
+) -> None:
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    adapter = DialogDataAdapter(dialog_manager)
+    plan = adapter.load(PlanDto)
+
+    if not plan:
+        raise ValueError("PlanDto not found in dialog data")
+
+    logger.debug(f"{log(user)} Selected plan traffic strategy '{selected_strategy}'")
+
+    plan.traffic_limit_strategy = selected_strategy
+    adapter.save(plan)
+
+    logger.info(f"{log(user)} Successfully updated plan traffic strategy to '{plan.availability}'")
 
 
 @inject
@@ -516,7 +667,7 @@ async def on_squads(
 
 
 @inject
-async def on_squad_select(
+async def on_internal_squad_select(
     callback: CallbackQuery,
     widget: Select[UUID],
     dialog_manager: DialogManager,
@@ -535,6 +686,31 @@ async def on_squad_select(
         logger.info(f"{log(user)} Unset squad '{selected_squad}'")
     else:
         plan.internal_squads.append(selected_squad)
+        logger.info(f"{log(user)} Set squad '{selected_squad}'")
+
+    adapter.save(plan)
+
+
+@inject
+async def on_external_squad_select(
+    callback: CallbackQuery,
+    widget: Select[UUID],
+    dialog_manager: DialogManager,
+    selected_squad: UUID,
+) -> None:
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+
+    adapter = DialogDataAdapter(dialog_manager)
+    plan = adapter.load(PlanDto)
+
+    if not plan:
+        raise ValueError("PlanDto not found in dialog data")
+
+    if selected_squad == plan.external_squad:
+        plan.external_squad = None
+        logger.info(f"{log(user)} Unset squad '{selected_squad}'")
+    else:
+        plan.external_squad = selected_squad
         logger.info(f"{log(user)} Set squad '{selected_squad}'")
 
     adapter.save(plan)

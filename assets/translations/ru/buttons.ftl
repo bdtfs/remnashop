@@ -224,6 +224,7 @@ btn-gateway-active = { $is_active ->
 
 btn-gateway-test = 🐞 Тест
 btn-gateways-default-currency = 💸 Валюта по умолчанию
+btn-gateways-placement = 🔢 Изменить позиционирование
 
 btn-gateways-default-currency-choice = { $enabled -> 
     [1] 🔘
@@ -265,29 +266,38 @@ btn-notifications-system-choice = { $enabled ->
 
 
 # Plans
+btn-plans-statistics = 📊 Статистика
+btn-plans-create = 🆕 Создать
+btn-plan-save = ✅ Сохранить
+btn-plan-create = ✅ Создать план
+btn-plan-delete = ❌ Удалить
+btn-plan-name = 🏷️ Название
+btn-plan-description = 💬 Описание
+btn-plan-description-remove = ❌ Удалить текущее описание
+btn-plan-tag = 📌 Тег
+btn-plan-tag-remove = ❌ Удалить текущий тег
+btn-plan-type = 🔖 Тип
+btn-plan-availability = ✴️ Доступ
+btn-plan-durations-prices = ⏳ Длительности и 💰 Цены
+btn-plan-traffic = 🌐 Трафик
+btn-plan-devices = 📱 Устройства
+btn-plan-allowed = 👥 Разрешенные пользователи
+btn-plan-squads = 🔗 Сквады
+btn-plan-internal-squads = ⏺️ Внутренние сквады
+btn-plan-external-squads = ⏹️ Внешний сквад
+btn-allowed-user = { $id }
+btn-plan-duration-add = 🆕 Добавить длительность
+btn-plan-price-choice = 💸 { $price } { $currency }
+
 btn-plan = { $is_active ->
     [1] 🟢
     *[0] 🔴 
     } { $name }
 
-btn-plans-statistics = 📊 Статистика
-btn-plans-create = 🆕 Создать
-btn-plan-confirm = ✅ Подтвердить
-btn-plan-name = 🏷️ Имя
-btn-plan-type = 🔖 Тип
-btn-plan-availability = ✴️ Доступ
-
 btn-plan-active = { $is_active -> 
-    [1] 🟢
-    *[0] 🔴
-    } Статус
-
-btn-plan-durations-prices = ⏳ Длительности и 💰 Цены
-btn-plan-traffic = 🌐 Трафик
-btn-plan-devices = 📱 Устройства
-btn-plan-allowed = 👥 Разрешенные пользователи
-btn-plan-squads = 🔗 Внутренние сквады
-btn-allowed-user = { $id }
+    [1] 🟢 Включен
+    *[0] 🔴 Выключен
+    }
 
 btn-plan-type-choice = { $type -> 
     [TRAFFIC] 🌐 Трафик
@@ -307,13 +317,15 @@ btn-plan-availability-choice = { $type ->
     *[OTHER] { $type }
     }
 
+btn-plan-traffic-strategy-choice = { $selected ->
+    [1] 🔘 { traffic-strategy }
+    *[0] ⚪ { traffic-strategy }
+    }
+
 btn-plan-duration = ⌛ { $value ->
     [-1] { unlimited }
     *[other] { unit-day }
     }
-
-btn-plan-duration-add = 🆕 Добавить длительность
-btn-plan-price-choice = 💸 { $price } { $currency }
 
 
 # RemnaWave

@@ -9,6 +9,7 @@ from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 from loguru import logger
 
+from src.bot.keyboards import get_user_keyboard
 from src.bot.states import Subscription
 from src.core.constants import PURCHASE_PREFIX, USER_KEY
 from src.core.enums import PaymentGatewayType, PurchaseType
@@ -96,14 +97,18 @@ async def _create_payment_and_get_data(
         await send_error_notification_task.kiq(
             error_id=user.telegram_id,
             traceback_str=traceback_str,
-            i18n_kwargs={
-                "user": True,
-                "user_id": str(user.telegram_id),
-                "user_name": user.name,
-                "username": user.username or False,
-                "error": f"{error_type_name}: Failed to create payment "
-                + f"check due to error: {error_message.as_html()}",
-            },
+            payload=MessagePayload.not_deleted(
+                i18n_key="ntf-event-error",
+                i18n_kwargs={
+                    "user": True,
+                    "user_id": str(user.telegram_id),
+                    "user_name": user.name,
+                    "username": user.username or False,
+                    "error": f"{error_type_name}: Failed to create payment "
+                    + f"check due to error: {error_message.as_html()}",
+                },
+                reply_markup=get_user_keyboard(user.telegram_id),
+            ),
         )
 
         await notification_service.notify_user(
@@ -150,7 +155,7 @@ async def on_purchase_type_select(
     if purchase_type == PurchaseType.RENEW:
         if user.current_subscription:
             matched_plan = user.current_subscription.find_matching_plan(plans)
-            logger.debug(f"Matched plan for renewal: 'э'{matched_plan}'")
+            logger.debug(f"Matched plan for renewal: '{matched_plan}'")
 
             if matched_plan:
                 adapter.save(matched_plan)

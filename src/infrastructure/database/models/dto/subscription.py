@@ -75,6 +75,7 @@ class BaseSubscriptionDto(TrackableDto):
     traffic_limit: int
     device_limit: int
     internal_squads: list[UUID]
+    external_squad: Optional[UUID]
 
     expire_at: datetime
     url: str
@@ -120,11 +121,11 @@ class BaseSubscriptionDto(TrackableDto):
 
         return (
             self.plan.id == plan.id
-            and self.plan.name == plan.name
             and self.plan.type == plan.type
             and self.plan.traffic_limit == plan.traffic_limit
             and self.plan.device_limit == plan.device_limit
             and self.plan.internal_squads == plan.internal_squads
+            and self.plan.external_squad == plan.external_squad
         )
 
     def find_matching_plan(self, plans: list[PlanDto]) -> Optional[PlanDto]:

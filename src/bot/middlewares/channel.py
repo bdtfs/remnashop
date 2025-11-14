@@ -8,7 +8,7 @@ from aiogram.utils.formatting import Text
 from dishka import AsyncContainer
 from loguru import logger
 
-from src.bot.keyboards import CALLBACK_CHANNEL_CONFIRM, get_channel_keyboard
+from src.bot.keyboards import CALLBACK_CHANNEL_CONFIRM, get_channel_keyboard, get_user_keyboard
 from src.core.constants import CONTAINER_KEY, USER_KEY
 from src.core.enums import MiddlewareEventType
 from src.core.utils.message_payload import MessagePayload
@@ -77,14 +77,18 @@ class ChannelMiddleware(EventTypedMiddleware):
             await send_error_notification_task.kiq(
                 error_id=user.telegram_id,
                 traceback_str=traceback_str,
-                i18n_kwargs={
-                    "user": True,
-                    "user_id": str(user.telegram_id),
-                    "user_name": user.name,
-                    "username": user.username or False,
-                    "error": f"{error_type_name}: Skipped channel required '{channel_link}' "
-                    + f"check due to error: {error_message.as_html()}",
-                },
+                payload=MessagePayload.not_deleted(
+                    i18n_key="ntf-event-error",
+                    i18n_kwargs={
+                        "user": True,
+                        "user_id": str(user.telegram_id),
+                        "user_name": user.name,
+                        "username": user.username or False,
+                        "error": f"{error_type_name}: Skipped channel required '{channel_link}' "
+                        + f"check due to error: {error_message.as_html()}",
+                    },
+                    reply_markup=get_user_keyboard(user.telegram_id),
+                ),
             )
             return await handler(event, data)
 

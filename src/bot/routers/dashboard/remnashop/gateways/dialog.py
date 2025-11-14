@@ -19,12 +19,19 @@ from src.bot.states import DashboardRemnashop, RemnashopGateways
 from src.bot.widgets import Banner, I18nFormat, IgnoreUpdate
 from src.core.enums import BannerName, Currency
 
-from .getters import currency_getter, field_getter, gateway_getter, gateways_getter
+from .getters import (
+    currency_getter,
+    field_getter,
+    gateway_getter,
+    gateways_getter,
+    placement_getter,
+)
 from .handlers import (
     on_active_toggle,
     on_default_currency_select,
     on_field_input,
     on_field_select,
+    on_gateway_move,
     on_gateway_select,
     on_gateway_test,
 )
@@ -53,6 +60,13 @@ gateways = Window(
         id="gateways_list",
         item_id_getter=lambda item: item["id"],
         items="gateways",
+    ),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-gateways-placement"),
+            id="placement",
+            state=RemnashopGateways.PLACEMENT,
+        ),
     ),
     Row(
         SwitchTo(
@@ -153,9 +167,41 @@ default_currency = Window(
     getter=currency_getter,
 )
 
+placement = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-gateways-placement"),
+    ListGroup(
+        Row(
+            Button(
+                text=I18nFormat("btn-gateway-title", gateway_type=F["item"]["gateway_type"]),
+                id="gateway",
+            ),
+            Button(
+                text=Format("🔼"),
+                id="move",
+                on_click=on_gateway_move,
+            ),
+        ),
+        id="gateways_list",
+        item_id_getter=lambda item: item["id"],
+        items="gateways",
+    ),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-back"),
+            id="back",
+            state=RemnashopGateways.MAIN,
+        ),
+    ),
+    IgnoreUpdate(),
+    state=RemnashopGateways.PLACEMENT,
+    getter=placement_getter,
+)
+
 router = Dialog(
     gateways,
     gateway_settings,
     gateway_field,
     default_currency,
+    placement,
 )
