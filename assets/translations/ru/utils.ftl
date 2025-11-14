@@ -97,7 +97,7 @@ frg-payment-info =
     </blockquote>
 
 frg-payment-amount = { $final_amount }{ $currency } { $discount_percent -> 
-    [0] { empty }
+    [0] { space }
     *[more] { space } <strike>{ $original_amount }{ $currency }</strike> (-{ $discount_percent }%)
     }
 

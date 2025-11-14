@@ -670,15 +670,6 @@ msg-subscription-details =
     }
     </blockquote>
 
-# { $description ->
-# [0] { empty }
-# *[HAS]
-# <b>📄 Описание:</b>
-# <blockquote>
-# { $description }
-# </blockquote>
-# }
-
 msg-subscription-duration = 
     <b>⏳ Выберите длительность</b>
 

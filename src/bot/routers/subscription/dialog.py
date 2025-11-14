@@ -50,14 +50,14 @@ subscription = Window(
             when=F["has_active_subscription"],
         ),
     ),
-    Row(
-        Button(
-            text=I18nFormat("btn-subscription-promocode"),
-            id=f"{PURCHASE_PREFIX}promocode",
-            on_click=show_dev_popup,
-            # state=Subscription.PROMOCODE,
-        ),
-    ),
+    # Row(
+    #     Button(
+    #         text=I18nFormat("btn-subscription-promocode"),
+    #         id=f"{PURCHASE_PREFIX}promocode",
+    #         on_click=show_dev_popup,
+    #         # state=Subscription.PROMOCODE,
+    #     ),
+    # ),
     *back_main_menu_button,
     IgnoreUpdate(),
     state=Subscription.MAIN,

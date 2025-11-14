@@ -59,12 +59,12 @@ menu = Window(
         ),
     ),
     Row(
-        Button(
-            text=I18nFormat("btn-menu-invite"),
-            id="invite",
-            on_click=show_dev_popup,
-            # state=MainMenu.INVITE,
-        ),
+        # Button(
+        #     text=I18nFormat("btn-menu-invite"),
+        #     id="invite",
+        #     on_click=show_dev_popup,
+        #     # state=MainMenu.INVITE,
+        # ),
         Url(
             text=I18nFormat("btn-menu-support"),
             id="support",
