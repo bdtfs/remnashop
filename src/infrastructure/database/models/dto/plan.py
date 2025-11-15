@@ -13,16 +13,16 @@ from .base import TrackableDto
 class PlanSnapshotDto(TrackableDto):
     id: int
     name: str
-    tag: Optional[str]
+    tag: Optional[str] = None
 
     type: PlanType
     traffic_limit: int
     device_limit: int
 
     duration: int
-    traffic_limit_strategy: TrafficLimitStrategy
+    traffic_limit_strategy: TrafficLimitStrategy = TrafficLimitStrategy.NO_RESET
     internal_squads: list[UUID]
-    external_squad: Optional[UUID]
+    external_squad: Optional[UUID] = None
 
     @property
     def is_unlimited_duration(self) -> bool:
