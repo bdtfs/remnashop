@@ -87,6 +87,8 @@ class DashboardUser(StatesGroup):
     TRANSACTION = State()
     GIVE_ACCESS = State()
     MESSAGE = State()
+    GIVE_SUBSCRIPTION = State()
+    SUBSCRIPTION_DURATION = State()
 
 
 class DashboardRemnashop(StatesGroup):
@@ -99,6 +101,7 @@ class RemnashopReferral(StatesGroup):
     MAIN = State()
     LEVEL = State()
     REWARD = State()
+    REWARD_TYPE = State()
     ACCRUAL_STRATEGY = State()
     REWARD_STRATEGY = State()
 

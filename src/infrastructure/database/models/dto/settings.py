@@ -44,27 +44,17 @@ class UserNotificationDto(TrackableDto):  # == UserNotificationType
         return getattr(self, ntf_type.value.lower(), False)
 
 
-class FixedAmountConfig(BaseDto):
-    amount: int = 5
-
-
-class PercentageConfig(BaseDto):
-    percent: int = 10
-
-
-class MultilevelConfig(BaseDto):
-    level_values: dict[ReferralLevel, int] = {ReferralLevel.FIRST: 10, ReferralLevel.SECOND: 5}
+class ReferralRewardSettingsDto(BaseDto):
+    type: ReferralRewardType = ReferralRewardType.EXTRA_DAYS
+    strategy: ReferralRewardStrategy = ReferralRewardStrategy.AMOUNT
+    config: dict[ReferralLevel, int] = {ReferralLevel.FIRST: 5}
 
 
 class ReferralSettingsDto(TrackableDto):
     enable: bool = True
     level: ReferralLevel = ReferralLevel.FIRST
     accrual_strategy: ReferralAccrualStrategy = ReferralAccrualStrategy.ON_FIRST_PAYMENT
-    reward_type: ReferralRewardType = ReferralRewardType.EXTRA_DAYS
-    reward_strategy: ReferralRewardStrategy = ReferralRewardStrategy.FIXED_AMOUNT
-    reward_config: Union[FixedAmountConfig, PercentageConfig, MultilevelConfig] = (
-        FixedAmountConfig()
-    )
+    reward: ReferralRewardSettingsDto = ReferralRewardSettingsDto()
 
 
 class SettingsDto(TrackableDto):

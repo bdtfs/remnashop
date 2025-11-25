@@ -4,7 +4,6 @@ from aiogram_dialog.widgets.text import Format
 from magic_filter import F
 
 from src.bot.keyboards import back_main_menu_button, connect_buttons
-from src.bot.routers.extra.test import show_dev_popup
 from src.bot.states import Subscription
 from src.bot.widgets import Banner, I18nFormat, IgnoreUpdate
 from src.core.constants import PURCHASE_PREFIX

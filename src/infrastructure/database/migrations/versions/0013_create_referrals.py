@@ -66,9 +66,11 @@ def upgrade() -> None:
     referral_level_enum = sa.Enum(
         "FIRST",
         "SECOND",
+        "THIRD",
         name="referral_level",
     )
     referral_reward_type_enum = sa.Enum(
+        "NO_REWARD",
         "POINTS",
         "EXTRA_DAYS",
         name="referral_reward_type",
@@ -127,7 +129,16 @@ def upgrade() -> None:
             "referral",
             sa.JSON(),
             nullable=False,
-            server_default='{"enable": true, "level": "FIRST", "reward": "EXTRA_DAYS"}',
+            server_default=(
+                '{"enable": true, '
+                '"level": 1, '
+                '"accrual_strategy": "ON_FIRST_PAYMENT", '
+                '"reward": {'
+                '"type": "EXTRA_DAYS", '
+                '"strategy": "AMOUNT", '
+                '"config": {"1": 5}'
+                "}}"
+            ),
         ),
     )
     op.alter_column(

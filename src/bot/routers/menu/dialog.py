@@ -32,7 +32,7 @@ menu = Window(
             text=I18nFormat("btn-menu-connect-not-available"),
             id="not_available",
             on_click=show_reason,
-            when=~F["connetable"],
+            when=~F["connectable"],
         ),
         when=F["has_subscription"],
     ),

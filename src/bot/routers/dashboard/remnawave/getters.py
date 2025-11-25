@@ -186,7 +186,7 @@ async def inbounds_getter(
                 inbound_id=str(inbound.uuid),
                 tag=inbound.tag,
                 type=inbound.type,
-                port=str(int(inbound.port)),
+                port=str(int(inbound.port)) if inbound.port else False,
                 network=inbound.network or False,
                 security=inbound.security or False,
             )

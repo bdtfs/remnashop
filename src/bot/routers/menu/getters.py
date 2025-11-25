@@ -54,7 +54,7 @@ async def menu_getter(
                 "is_trial": False,
                 "trial_available": not has_used_trial and plan,
                 "has_device_limit": False,
-                "connetable": False,
+                "connectable": False,
             }
         )
         return base_data
@@ -68,7 +68,7 @@ async def menu_getter(
             "expire_time": i18n_format_expire_time(subscription.expire_at),
             "is_trial": subscription.is_trial,
             "has_device_limit": subscription.has_devices_limit if subscription.is_active else False,
-            "connetable": subscription.is_active,
+            "connectable": subscription.is_active,
             "url": config.bot.mini_app_url or subscription.url,
         }
     )

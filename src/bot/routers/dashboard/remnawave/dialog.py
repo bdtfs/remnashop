@@ -124,7 +124,6 @@ inbounds = Window(
     preview_data=inbounds_getter,
 )
 
-
 router = Dialog(
     remnawave,
     users,

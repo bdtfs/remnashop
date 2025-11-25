@@ -61,7 +61,7 @@ class SettingsService(BaseService):
         if settings.system_notifications.changed_data:
             settings.system_notifications = settings.system_notifications
 
-        if settings.referral.changed_data:
+        if settings.referral.changed_data or settings.referral.reward:
             settings.referral = settings.referral
 
         changed_data = settings.prepare_changed_data()

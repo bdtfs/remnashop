@@ -1,4 +1,5 @@
 from aiogram_dialog import Dialog, Window
+from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, Column, Row, Select, Start, SwitchTo
 from magic_filter import F
 
@@ -9,11 +10,13 @@ from src.bot.routers.dashboard.remnashop.referral.getters import (
     referral_getter,
     reward_getter,
     reward_strategy_getter,
+    reward_type_getter,
 )
 from src.bot.routers.dashboard.remnashop.referral.handlers import (
     on_accrual_strategy_select,
     on_enable_toggle,
     on_level_select,
+    on_reward_input,
     on_reward_select,
     on_reward_strategy_select,
 )
@@ -22,7 +25,6 @@ from src.bot.widgets import Banner, I18nFormat, IgnoreUpdate
 from src.core.enums import (
     BannerName,
     ReferralAccrualStrategy,
-    ReferralLevel,
     ReferralRewardStrategy,
     ReferralRewardType,
 )
@@ -42,26 +44,37 @@ referral = Window(
             text=I18nFormat("btn-referral-level"),
             id="level",
             state=RemnashopReferral.LEVEL,
+            when=F["with_reward"],
         ),
         SwitchTo(
-            text=I18nFormat("btn-referral-reward"),
-            id="reward",
-            state=RemnashopReferral.REWARD,
+            text=I18nFormat("btn-referral-reward-type"),
+            id="reward_type",
+            state=RemnashopReferral.REWARD_TYPE,
         ),
     ),
     Row(
         SwitchTo(
             text=I18nFormat("btn-referral-accrual-strategy"),
-            id="strategy",
+            id="accrual_strategy",
             state=RemnashopReferral.ACCRUAL_STRATEGY,
         ),
+        when=F["with_reward"],
     ),
     Row(
         SwitchTo(
             text=I18nFormat("btn-referral-reward-strategy"),
-            id="strategy",
+            id="reward_strategy",
             state=RemnashopReferral.REWARD_STRATEGY,
         ),
+        when=F["with_reward"],
+    ),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-referral-reward"),
+            id="reward",
+            state=RemnashopReferral.REWARD,
+        ),
+        when=F["with_reward"],
     ),
     Row(
         Start(
@@ -85,7 +98,7 @@ level = Window(
             id="select_level",
             item_id_getter=lambda item: item.value,
             items="levels",
-            type_factory=ReferralLevel,
+            type_factory=int,
             on_click=on_level_select,
         ),
     ),
@@ -101,9 +114,9 @@ level = Window(
     getter=level_getter,
 )
 
-reward = Window(
+reward_type = Window(
     Banner(BannerName.DASHBOARD),
-    I18nFormat("msg-referral-reward"),
+    I18nFormat("msg-referral-reward-type"),
     Column(
         Select(
             text=I18nFormat("btn-referral-reward-choice", type=F["item"]),
@@ -121,6 +134,22 @@ reward = Window(
             state=RemnashopReferral.MAIN,
         ),
     ),
+    IgnoreUpdate(),
+    state=RemnashopReferral.REWARD_TYPE,
+    getter=reward_type_getter,
+)
+
+reward = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-referral-reward"),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-back"),
+            id="back",
+            state=RemnashopReferral.MAIN,
+        ),
+    ),
+    MessageInput(func=on_reward_input),
     IgnoreUpdate(),
     state=RemnashopReferral.REWARD,
     getter=reward_getter,
@@ -179,7 +208,8 @@ reward_strategy = Window(
 router = Dialog(
     referral,
     level,
-    reward,
+    reward_type,
     accrual_strategy,
     reward_strategy,
+    reward,
 )

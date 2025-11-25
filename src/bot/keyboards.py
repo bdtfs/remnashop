@@ -35,13 +35,13 @@ connect_buttons = (
         text=I18nFormat("btn-menu-connect"),
         url=Format("{url}"),
         id="connect_miniapp",
-        when=F["is_app"] & F["connetable"],
+        when=F["is_app"] & F["connectable"],
     ),
     Url(
         text=I18nFormat("btn-menu-connect"),
         url=Format("{url}"),
         id="connect_sub_page",
-        when=~F["is_app"] & F["connetable"],
+        when=~F["is_app"] & F["connectable"],
     ),
 )
 

@@ -170,6 +170,7 @@ async def confirm_getter(
     selected_duration = dialog_manager.dialog_data["selected_duration"]
     only_single_duration = dialog_manager.dialog_data.get("only_single_duration", False)
     selected_payment_method = dialog_manager.dialog_data["selected_payment_method"]
+    purchase_type = dialog_manager.dialog_data["purchase_type"]
     payment_gateway = await payment_gateway_service.get_by_type(selected_payment_method)
     duration = plan.get_duration(selected_duration)
 
@@ -187,6 +188,7 @@ async def confirm_getter(
     gateways = await payment_gateway_service.filter_active()
 
     return {
+        "purchase_type": purchase_type,
         "plan": plan.name,
         "description": plan.description or False,
         "type": plan.type,
@@ -217,7 +219,7 @@ async def getter_connect(
     return {
         "is_app": config.bot.is_mini_app,
         "url": config.bot.mini_app_url or user.current_subscription.url,
-        "connetable": True,
+        "connectable": True,
     }
 
 
@@ -244,5 +246,5 @@ async def success_payment_getter(
         "added_duration": i18n_format_days(subscription.plan.duration),
         "is_app": config.bot.is_mini_app,
         "url": config.bot.mini_app_url or subscription.url,
-        "connetable": True,
+        "connectable": True,
     }

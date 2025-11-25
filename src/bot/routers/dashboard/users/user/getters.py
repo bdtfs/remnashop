@@ -374,6 +374,53 @@ async def give_access_getter(
 
 
 @inject
+async def give_subscription_getter(
+    dialog_manager: DialogManager,
+    user_service: FromDishka[UserService],
+    plan_service: FromDishka[PlanService],
+    subscription_service: FromDishka[SubscriptionService],
+    **kwargs: Any,
+) -> dict[str, Any]:
+    target_telegram_id = dialog_manager.dialog_data["target_telegram_id"]
+    target_user = await user_service.get(telegram_id=target_telegram_id)
+
+    if not target_user:
+        raise ValueError(f"User '{target_telegram_id}' not found")
+
+    is_new_user = not await subscription_service.has_any_subscription(target_user)
+    plans = await plan_service.get_available_plans(target_user, is_new_user)
+
+    if not plans:
+        raise ValueError("Available plans not found")
+
+    formatted_plans = [
+        {
+            "plan_name": plan.name,
+            "plan_id": plan.id,
+        }
+        for plan in plans
+    ]
+
+    return {"plans": formatted_plans}
+
+
+@inject
+async def subscription_duration_getter(
+    dialog_manager: DialogManager,
+    plan_service: FromDishka[PlanService],
+    **kwargs: Any,
+) -> dict[str, Any]:
+    selected_plan_id = dialog_manager.dialog_data["selected_plan_id"]
+    plan = await plan_service.get(selected_plan_id)
+
+    if not plan:
+        raise ValueError(f"Plan '{selected_plan_id}' not found")
+
+    durations = [duration.model_dump() for duration in plan.durations]
+    return {"durations": durations}
+
+
+@inject
 async def role_getter(
     dialog_manager: DialogManager,
     user_service: FromDishka[UserService],

@@ -12,14 +12,15 @@ class UpperStrEnum(StrEnum):
 
 
 class ReferralRewardType(UpperStrEnum):
+    NO_REWARD = auto()
     POINTS = auto()
     EXTRA_DAYS = auto()
 
 
-class ReferralLevel(Enum):
-    FIRST = 1
-    SECOND = 2
-    THIRD = 3
+class ReferralLevel(IntEnum):
+    FIRST = auto()
+    SECOND = auto()
+    THIRD = auto()
 
 
 class ReferralAccrualStrategy(UpperStrEnum):
@@ -28,14 +29,9 @@ class ReferralAccrualStrategy(UpperStrEnum):
     ON_RENEWAL = auto()
 
 
-class ReferralRewardStrategy(Enum):
-    # Фиксированное кол-во (за все уровни рефералов)
-    FIXED_AMOUNT = auto()
-    # Процент от покупки (т.е. если ReferralRewardType.POINTS то начисляем процент от суммы платежа,
-    # если ReferralRewardType.EXTRA_DAYS то начисляем процент от купленной длительности)
+class ReferralRewardStrategy(UpperStrEnum):
+    AMOUNT = auto()
     PERCENTAGE = auto()
-    # тоже самое что PERCENTAGE только разный процент для каждого уровня реферала
-    MULTILEVEL = auto()
 
 
 class BroadcastStatus(UpperStrEnum):

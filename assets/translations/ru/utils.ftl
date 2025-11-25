@@ -307,23 +307,23 @@ traffic-strategy = { $strategy_type ->
     }
 
 reward-type = { $reward_type -> 
+    [NO_REWARD] Без награды
     [POINTS] Баллы
     [EXTRA_DAYS] Дни
     *[OTHER] { $reward_type }
     }
 
-accrual-strategy = { $type -> 
+accrual-strategy = { $accrual_strategy_type -> 
     [ON_FIRST_PAYMENT] Первый платеж
     [ON_EACH_PAYMENT] Каждый платеж
     [ON_RENEWAL] Каждое продление
-    *[OTHER] { $type }
+    *[OTHER] { $accrual_strategy_type }
     }
 
-reward-strategy = { $type -> 
-    [FIXED_AMOUNT] Фиксированное значение
-    [PERCENTAGE] Процент
-    [MULTILEVEL] Процент по уровням
-    *[OTHER] { $type }
+reward-strategy = { $reward_strategy_type -> 
+    [AMOUNT] Фиксированная
+    [PERCENTAGE] Процентная
+    *[OTHER] { $reward_strategy_type }
     }
 
 language = { $language ->

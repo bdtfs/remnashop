@@ -11,6 +11,7 @@ from dishka.integrations.aiogram_dialog import inject
 from fluentogram import TranslatorRunner
 from loguru import logger
 from remnawave import RemnawaveSDK
+from remnawave.models import TelegramUserResponseDto
 
 from src.bot.keyboards import get_contact_support_keyboard
 from src.bot.states import DashboardUser
@@ -22,6 +23,8 @@ from src.core.utils.message_payload import MessagePayload
 from src.core.utils.time import datetime_now
 from src.core.utils.validators import is_double_click, parse_int
 from src.infrastructure.database.models.dto import UserDto
+from src.infrastructure.database.models.dto.plan import PlanSnapshotDto
+from src.infrastructure.database.models.dto.subscription import SubscriptionDto
 from src.infrastructure.taskiq.tasks.redirects import redirect_to_main_menu_task
 from src.services.notification import NotificationService
 from src.services.plan import PlanService
@@ -745,3 +748,143 @@ async def on_send(
         payload=MessagePayload(i18n_key="ntf-double-click-confirm"),
     )
     logger.debug(f"{log(user)} Awaiting confirmation for message send")
+
+
+@inject
+async def on_sync(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    remnawave: FromDishka[RemnawaveSDK],
+    remnawave_service: FromDishka[RemnawaveService],
+    user_service: FromDishka[UserService],
+    notification_service: FromDishka[NotificationService],
+) -> None:
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    target_telegram_id = dialog_manager.dialog_data["target_telegram_id"]
+    target_user = await user_service.get(telegram_id=target_telegram_id)
+
+    if not target_user:
+        raise ValueError(f"User '{target_telegram_id}' not found")
+
+    try:
+        result = await remnawave.users.get_users_by_telegram_id(telegram_id=str(target_telegram_id))
+
+        if not isinstance(result, TelegramUserResponseDto):
+            raise ValueError("Unexpected response TelegramUserResponseDto")
+
+        if not result:
+            await notification_service.notify_user(
+                user=user,
+                payload=MessagePayload(i18n_key="ntf-user-sync-failed"),
+            )
+        else:
+            await remnawave_service.sync_user(result[0], creating=False)
+
+    except Exception as exception:
+        await notification_service.notify_user(
+            user=user,
+            payload=MessagePayload(i18n_key="ntf-user-sync-failed"),
+        )
+        logger.exception(
+            f"Error syncing RemnaUser '{target_user.telegram_id}' exception: {exception}"
+        )
+
+
+@inject
+async def on_give_subscription(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    user_service: FromDishka[UserService],
+    plan_service: FromDishka[PlanService],
+    subscription_service: FromDishka[SubscriptionService],
+    notification_service: FromDishka[NotificationService],
+) -> None:
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    target_telegram_id = dialog_manager.dialog_data["target_telegram_id"]
+    target_user = await user_service.get(telegram_id=target_telegram_id)
+
+    if not target_user:
+        raise ValueError(f"User '{target_telegram_id}' not found")
+
+    is_new_user = not await subscription_service.has_any_subscription(target_user)
+    plans = await plan_service.get_available_plans(target_user, is_new_user)
+
+    if not plans:
+        await notification_service.notify_user(
+            user=user,
+            payload=MessagePayload(i18n_key="ntf-user-plans-empty"),
+        )
+        return
+
+    await dialog_manager.switch_to(state=DashboardUser.GIVE_SUBSCRIPTION)
+
+
+@inject
+async def on_subscription_select(
+    callback: CallbackQuery,
+    widget: Select[int],
+    dialog_manager: DialogManager,
+    selected_plan_id: int,
+) -> None:
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    logger.info(f"{log(user)} Selected plan '{selected_plan_id}'")
+    dialog_manager.dialog_data["selected_plan_id"] = selected_plan_id
+    await dialog_manager.switch_to(state=DashboardUser.SUBSCRIPTION_DURATION)
+
+
+@inject
+async def on_subscription_duration_select(
+    callback: CallbackQuery,
+    widget: Select[int],
+    dialog_manager: DialogManager,
+    selected_duration: int,
+    plan_service: FromDishka[PlanService],
+    subscription_service: FromDishka[SubscriptionService],
+    remnawave_service: FromDishka[RemnawaveService],
+) -> None:
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    logger.info(f"{log(user)} Selected duration '{selected_duration}'")
+    target_telegram_id = dialog_manager.dialog_data["target_telegram_id"]
+    selected_plan_id = dialog_manager.dialog_data["selected_plan_id"]
+    plan = await plan_service.get(selected_plan_id)
+
+    if not plan:
+        raise ValueError(f"Plan '{selected_plan_id}' not found")
+
+    plan_snapshot = PlanSnapshotDto.from_plan(plan, selected_duration)
+    subscription = await subscription_service.get_current(target_telegram_id)
+
+    if subscription:
+        remna_user = await remnawave_service.updated_user(
+            user=user,
+            uuid=subscription.user_remna_id,
+            plan=plan_snapshot,
+            reset_traffic=True,
+        )
+    else:
+        remna_user = await remnawave_service.create_user(user, plan_snapshot)
+
+    subscription_url = remna_user.subscription_url
+    logger.success(subscription_url)
+
+    if not subscription_url:
+        subscription_url = await remnawave_service.get_subscription_url(remna_user.uuid)
+
+    logger.success(subscription_url)
+    new_subscription = SubscriptionDto(
+        user_remna_id=remna_user.uuid,
+        status=remna_user.status,
+        traffic_limit=plan.traffic_limit,
+        device_limit=plan.device_limit,
+        internal_squads=plan.internal_squads,
+        external_squad=plan.external_squad,
+        expire_at=remna_user.expire_at,
+        url=subscription_url,
+        plan=plan_snapshot,
+    )
+    await subscription_service.create(user, new_subscription)
+
+    logger.info(f"{log(user)} Set plan '{selected_plan_id}' for user '{target_telegram_id}'")
+    await dialog_manager.switch_to(state=DashboardUser.MAIN)

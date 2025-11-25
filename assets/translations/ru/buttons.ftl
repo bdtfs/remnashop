@@ -112,7 +112,8 @@ btn-user-subscription-set = ✅ Установить подписку
 btn-user-subscription-delete = ❌ Удалить
 btn-user-message-preview = 👀 Предпросмотр
 btn-user-message-confirm = ✅ Отправить
-
+btn-user-sync = 🌀 Синхронизировать
+btn-user-give-subscription = 🎁 Выдать подписку
 
 btn-user-subscription-duration = { $operation ->
     [ADD] +
@@ -206,7 +207,7 @@ btn-access-condition-toggle = { $enabled ->
 # RemnaShop
 btn-remnashop-admins = 👮‍♂️ Администраторы
 btn-remnashop-gateways = 🌐 Платежные системы
-btn-remnashop-referral = 👥 Реферальная
+btn-remnashop-referral = 👥 Реф. система
 btn-remnashop-advertising = 🎯 Реклама
 btn-remnashop-plans = 📦 Планы
 btn-remnashop-notifications = 🔔 Уведомления
@@ -236,10 +237,10 @@ btn-gateways-default-currency-choice = { $enabled ->
 
 # Referral
 btn-referral-level = 🔢 Уровень
+btn-referral-reward-type = 🎀 Тип награды
+btn-referral-accrual-strategy = 📍 Условие начисления
+btn-referral-reward-strategy = ⚖️ Форма начисления
 btn-referral-reward = 🎁 Награда
-btn-referral-accrual-strategy = 📍 Стратегия начисления
-btn-referral-reward-strategy = ⚖️ Стратегия награждения
-
 
 btn-referral-enable = { $is_enable -> 
     [1] 🟢 Включена
@@ -254,6 +255,7 @@ btn-referral-level-choice = { $type ->
     }
 
 btn-referral-reward-choice = { $type -> 
+    [NO_REWARD] ❌ Без награды
     [POINTS] 💎 Баллы
     [EXTRA_DAYS] ⏳ Дни
     *[OTHER] { $type }
@@ -267,9 +269,8 @@ btn-referral-accrual-strategy-choice = { $type ->
     }
 
 btn-referral-reward-strategy-choice = { $type -> 
-    [FIXED_AMOUNT] 🔸 Фиксированное значение
-    [PERCENTAGE] 🔹 Процент
-    [MULTILEVEL] 🔷 Процент по уровням
+    [AMOUNT] 🔸 Фиксированная
+    [PERCENTAGE] 🔹 Процентная
     *[OTHER] { $type }
     }
 
@@ -378,7 +379,7 @@ btn-remnawave-inbounds = 🔌 Инбаунды
 
 
 # Importer
-btn-importer-from-xui = 💩 Панель 3X-UI
+btn-importer-from-xui = 💩 Импорт из панели 3X-UI
 btn-importer-from-xui-shop = 🛒 Бот 3xui-shop
 btn-importer-sync = 🌀 Запустить синхронизацию
 btn-importer-squads = 🔗 Внутренние сквады
