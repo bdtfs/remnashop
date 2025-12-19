@@ -9,6 +9,8 @@ from .cryptomus import CryptomusGateway
 class HeleketGateway(CryptomusGateway):
     API_BASE: str = "https://api.heleket.com"
 
+    NETWORKS = ["31.133.220.8"]
+
     def __init__(self, gateway: PaymentGatewayDto, bot: Bot, config: AppConfig) -> None:
         super().__init__(gateway, bot, config)
 
