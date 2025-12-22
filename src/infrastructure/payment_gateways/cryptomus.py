@@ -17,10 +17,10 @@ from src.core.config import AppConfig
 from src.core.enums import Currency, TransactionStatus
 from src.infrastructure.database.models.dto import (
     CryptomusGatewaySettingsDto,
+    HeleketGatewaySettingsDto,
     PaymentGatewayDto,
     PaymentResult,
 )
-from src.infrastructure.database.models.dto.payment_gateway import HeleketGatewaySettingsDto
 
 from .base import BasePaymentGateway
 
