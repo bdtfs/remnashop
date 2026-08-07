@@ -16,7 +16,7 @@ env:
 jobs:
   lint-and-test:
     name: Lint & Test
-    runs-on: compono-vpn-arc
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -40,7 +40,7 @@ jobs:
   generate-tag:
     name: Generate Tag
     needs: lint-and-test
-    runs-on: compono-vpn-arc
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     outputs:
@@ -70,7 +70,7 @@ jobs:
   build:
     name: Build
     needs: generate-tag
-    runs-on: compono-vpn-arc
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -101,7 +101,7 @@ jobs:
   release:
     name: Create Release
     needs: [generate-tag, build]
-    runs-on: compono-vpn-arc
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
@@ -132,7 +132,7 @@ jobs:
   dispatch-update:
     name: Dispatch Tag to ArgoCD
     needs: [generate-tag, build]
-    runs-on: compono-vpn-arc
+    runs-on: ubuntu-latest
     steps:
       - name: Dispatch prod tag update
         uses: peter-evans/repository-dispatch@v3
