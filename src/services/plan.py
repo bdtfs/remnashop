@@ -99,11 +99,7 @@ class PlanService(BaseBillingService):
 
     async def get_entry_plan(self) -> Optional[PlanDto]:
         plans = await self.get_allowed_plans()
-        candidates = [
-            p
-            for p in plans
-            if p.is_active and p.availability != PlanAvailability.TRIAL
-        ]
+        candidates = [p for p in plans if p.is_active and p.availability != PlanAvailability.TRIAL]
         if not candidates:
             logger.warning("No active non-trial plan available to use as the entry plan")
             return None

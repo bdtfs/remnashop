@@ -166,8 +166,7 @@ async def grant_extra_days(
             user, plan, api_client, subscription_service
         )
         logger.info(
-            f"Provisioned '{plan.name}' for '{days}' referral days "
-            f"for user '{user.telegram_id}'"
+            f"Provisioned '{plan.name}' for '{days}' referral days for user '{user.telegram_id}'"
         )
     return True, subscription_url
 
