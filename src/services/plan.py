@@ -5,6 +5,7 @@ from redis.asyncio import Redis
 
 from src.core.config import AppConfig
 from src.core.constants import TIME_10M
+from src.core.enums import PlanAvailability
 from src.core.storage.key_builder import build_key
 from src.infrastructure.billing import BillingClient, billing_plan_to_dto
 from src.infrastructure.redis import RedisRepository
@@ -95,6 +96,20 @@ class PlanService(BaseBillingService):
             logger.warning(f"Trial plan '{dto.name}' found but is not active")
         logger.debug("No active trial plan found")
         return None
+
+    async def get_entry_plan(self) -> Optional[PlanDto]:
+        plans = await self.get_allowed_plans()
+        candidates = [
+            p
+            for p in plans
+            if p.is_active and p.availability != PlanAvailability.TRIAL
+        ]
+        if not candidates:
+            logger.warning("No active non-trial plan available to use as the entry plan")
+            return None
+        entry = min(candidates, key=lambda p: (p.order_index, p.id or 0))
+        logger.debug(f"Entry plan resolved to '{entry.name}' (id '{entry.id}')")
+        return entry
 
     async def get_available_plans(self, user: UserDto) -> list[PlanDto]:
         logger.debug(f"Fetching available plans for user '{user.telegram_id}'")
