@@ -153,7 +153,6 @@ def make_config() -> MagicMock:
     config.bot.is_mini_app = False
     config.remnawave.sub_public_domain = "componovpn.com"
     config.hydra_primary_domain = "componovpn.com"
-    config.calls.is_beta_user.return_value = True
     return config
 
 

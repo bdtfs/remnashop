@@ -9,6 +9,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+from src.bot.routers.menu.getters import connect_getter as _connect_getter
 from src.bot.routers.menu.getters import menu_getter as _menu_getter
 from src.infrastructure.billing.models import BillingTGProxy
 from tests.conftest import (
@@ -24,6 +25,7 @@ from tests.conftest import (
 )
 
 menu_getter = unwrap_inject(_menu_getter)
+connect_getter = unwrap_inject(_connect_getter)
 
 
 # ---------------------------------------------------------------------------
@@ -204,50 +206,33 @@ class TestMenuState:
 
 
 # ---------------------------------------------------------------------------
-# Calls (beta) gating
+# Connect submenu getter
 # ---------------------------------------------------------------------------
 
-class TestCallsBetaAvailability:
-    """The Calls (beta) button should only appear for an active, non-trial subscriber."""
+
+class TestConnectGetter:
+    """The connect submenu getter builds the guide page URL from the subscription."""
 
     @pytest.mark.asyncio
-    async def test_active_non_trial_subscription_shows_button(self):
-        user = make_user(subscription=make_subscription(active=True, is_trial=False))
+    async def test_active_subscription_builds_connect_url(self):
+        user = make_user(subscription=make_subscription())
 
-        result = await _call_menu_getter(user=user)
+        result = await connect_getter(
+            dialog_manager=make_dialog_manager(),
+            config=make_config(),
+            user=user,
+        )
 
-        assert result["calls_beta_available"] is True
-
-    @pytest.mark.asyncio
-    async def test_active_trial_subscription_hides_button(self):
-        user = make_user(subscription=make_subscription(active=True, is_trial=True))
-
-        result = await _call_menu_getter(user=user)
-
-        assert result["calls_beta_available"] is False
+        assert result["url"] == "https://componovpn.com/connect/abc123"
 
     @pytest.mark.asyncio
-    async def test_expired_non_trial_subscription_hides_button(self):
-        user = make_user(subscription=make_subscription(active=False, is_trial=False))
-
-        result = await _call_menu_getter(user=user)
-
-        assert result["calls_beta_available"] is False
-
-    @pytest.mark.asyncio
-    async def test_no_subscription_hides_button(self):
+    async def test_no_subscription_returns_empty_url(self):
         user = make_user(subscription=None)
 
-        result = await _call_menu_getter(user=user)
+        result = await connect_getter(
+            dialog_manager=make_dialog_manager(),
+            config=make_config(),
+            user=user,
+        )
 
-        assert result["calls_beta_available"] is False
-
-    @pytest.mark.asyncio
-    async def test_active_non_trial_not_in_allowlist_hides_button(self):
-        user = make_user(subscription=make_subscription(active=True, is_trial=False))
-        config = make_config()
-        config.calls.is_beta_user.return_value = False
-
-        result = await _call_menu_getter(user=user, config=config)
-
-        assert result["calls_beta_available"] is False
+        assert result["url"] == ""
