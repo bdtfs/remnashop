@@ -88,6 +88,22 @@ def _make_service(
 # ---------------------------------------------------------------------------
 
 
+class TestCreateDefault:
+    @pytest.mark.asyncio
+    async def test_manual_grant_is_never_seeded_as_a_payment_method(self):
+        billing = AsyncMock()
+        billing.list_gateways.return_value = []
+        billing.create_gateway.return_value = None
+
+        svc = _make_service(billing=billing)
+        await svc.create_default()
+
+        created_types = {
+            call.args[0]["type"] for call in billing.create_gateway.call_args_list
+        }
+        assert PaymentGatewayType.MANUAL_GRANT.value not in created_types
+
+
 class TestGet:
     @pytest.mark.asyncio
     async def test_returns_dto_when_found(self):

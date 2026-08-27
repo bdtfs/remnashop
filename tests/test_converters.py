@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from decimal import Decimal
+from unittest.mock import patch
 from uuid import UUID
 
 from src.core.enums import (
@@ -349,6 +350,29 @@ class TestBillingTransactionToDto:
         dto = billing_transaction_to_dto(bt)
 
         assert dto.payment_id == UUID(int=0)
+
+    def test_manual_grant_gateway_type(self):
+        bt = BillingTransaction(
+            ID=1,
+            Status="COMPLETED",
+            GatewayType="MANUAL_GRANT",
+            Currency="RUB",
+            Pricing=BillingPriceDetails(original_amount="0", discount_percent=0, final_amount="0"),
+        )
+        dto = billing_transaction_to_dto(bt)
+
+        assert dto.gateway_type == PaymentGatewayType.MANUAL_GRANT
+        assert dto.pricing.final_amount == Decimal("0")
+
+    def test_unknown_gateway_type_falls_back_safely(self):
+        bt = BillingTransaction(ID=1, Status="COMPLETED", GatewayType="SOME_FUTURE_GATEWAY")
+
+        with patch("src.infrastructure.billing.converters.logger") as mock_logger:
+            dto = billing_transaction_to_dto(bt)
+
+            assert dto.gateway_type == PaymentGatewayType.TELEGRAM_STARS
+            mock_logger.warning.assert_called_once()
+            assert "SOME_FUTURE_GATEWAY" in mock_logger.warning.call_args[0][0]
 
 
 class TestBillingPriceDetailsToDto:
