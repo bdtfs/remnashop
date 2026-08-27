@@ -28,6 +28,8 @@ btn-squad-choice = { $selected ->
 
 # Menu
 btn-menu-connect = 🚀 Подключиться
+btn-menu-connect-guide = 📖 Пошаговая инструкция по подключению
+btn-menu-connect-give-link = 🔗 Просто дай ссылку
 
 btn-menu-connect-not-available =
     ⚠️ { $status -> 
@@ -52,7 +54,6 @@ btn-menu-info-privacy = 🔒 Политика конфиденциальност
 btn-menu-info-terms = 📄 Условия использования
 btn-menu-tg-proxy = 📡 Прокси для Telegram
 btn-menu-tg-proxy-connect = 🔗 Подключить прокси
-btn-menu-calls-beta = 📞 Звонки (бета)
 btn-menu-dashboard = 🛠 Панель управления
 
 

@@ -13,7 +13,6 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Format
 from magic_filter import F
 
-from src.bot.keyboards import connect_buttons
 from src.bot.routers.dashboard.users.handlers import on_user_search
 from src.bot.states import Dashboard, MainMenu, Subscription
 from src.bot.widgets import Banner, I18nFormat, IgnoreUpdate
@@ -21,6 +20,7 @@ from src.core.constants import MIDDLEWARE_DATA_KEY, PURCHASE_PREFIX, USER_KEY
 from src.core.enums import BannerName
 
 from .getters import (
+    connect_getter,
     devices_getter,
     info_getter,
     invite_about_getter,
@@ -29,7 +29,7 @@ from .getters import (
     tg_proxy_getter,
 )
 from .handlers import (
-    on_calls_beta,
+    on_connect_give_link,
     on_device_delete,
     on_get_trial,
     on_invite,
@@ -42,7 +42,12 @@ menu = Window(
     Banner(BannerName.MENU),
     I18nFormat("msg-main-menu"),
     Row(
-        *connect_buttons,
+        SwitchTo(
+            text=I18nFormat("btn-menu-connect"),
+            id="connect",
+            state=MainMenu.CONNECT,
+            when=F["connectable"],
+        ),
         Button(
             text=I18nFormat("btn-menu-connect-not-available"),
             id="not_available",
@@ -57,14 +62,6 @@ menu = Window(
             id="tg_proxy",
             state=MainMenu.TG_PROXY,
             when=F["tg_proxy_available"],
-        ),
-    ),
-    Row(
-        Button(
-            text=I18nFormat("btn-menu-calls-beta"),
-            id="calls_beta",
-            on_click=on_calls_beta,
-            when=F["calls_beta_available"],
         ),
     ),
     Row(
@@ -287,6 +284,35 @@ tg_proxy = Window(
     getter=tg_proxy_getter,
 )
 
+connect = Window(
+    Banner(BannerName.MENU),
+    I18nFormat("msg-menu-connect"),
+    Row(
+        Url(
+            text=I18nFormat("btn-menu-connect-guide"),
+            id="connect_guide",
+            url=Format("{url}"),
+        ),
+    ),
+    Row(
+        Button(
+            text=I18nFormat("btn-menu-connect-give-link"),
+            id="connect_give_link",
+            on_click=on_connect_give_link,
+        ),
+    ),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-back"),
+            id="back",
+            state=MainMenu.MAIN,
+        ),
+    ),
+    IgnoreUpdate(),
+    state=MainMenu.CONNECT,
+    getter=connect_getter,
+)
+
 router = Dialog(
     menu,
     devices,
@@ -294,4 +320,5 @@ router = Dialog(
     invite_about,
     info,
     tg_proxy,
+    connect,
 )

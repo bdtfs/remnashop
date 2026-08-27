@@ -79,7 +79,6 @@ async def menu_getter(
                     "has_device_limit": False,
                     "connectable": False,
                     "tg_proxy_available": False,
-                    "calls_beta_available": False,
                 }
             )
             return base_data
@@ -118,17 +117,28 @@ async def menu_getter(
                     subscription.url, config.remnawave.sub_public_domain
                 ),
                 "tg_proxy_available": len(tg_proxies) > 0,
-                "calls_beta_available": (
-                    subscription.is_active
-                    and not subscription.is_trial
-                    and config.calls.is_beta_user(user.telegram_id)
-                ),
             }
         )
 
         return base_data
     except Exception as exception:
         raise MenuRenderingError(str(exception)) from exception
+
+
+@inject
+async def connect_getter(
+    dialog_manager: DialogManager,
+    config: AppConfig,
+    user: UserDto,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    subscription = user.current_subscription
+    url = ""
+    if subscription and subscription.url:
+        url = SubscriptionService.build_connect_url(
+            subscription.url, config.remnawave.sub_public_domain
+        )
+    return {"url": url}
 
 
 @inject
