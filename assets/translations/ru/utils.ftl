@@ -295,6 +295,7 @@ gateway-type = { $gateway_type ->
     [URLPAY] UrlPay
     [PLATEGA] Platega
     [PLAIDLY] 🪙 Криптовалюта
+    [MANUAL_GRANT] 🎁 Подарок от Compono
     *[OTHER] { $gateway_type }
 }
 

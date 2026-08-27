@@ -8,6 +8,7 @@ from decimal import Decimal
 from typing import Optional
 from uuid import UUID
 
+from loguru import logger
 from remnapy.enums.users import TrafficLimitStrategy
 
 from src.core.enums import (
@@ -209,6 +210,18 @@ def billing_price_details_to_dto(bp: BillingPriceDetails) -> PriceDetailsDto:
     )
 
 
+def _parse_gateway_type(raw: Optional[str]) -> PaymentGatewayType:
+    if not raw:
+        return PaymentGatewayType.TELEGRAM_STARS
+
+    try:
+        return PaymentGatewayType(raw)
+    except ValueError:
+        fallback = PaymentGatewayType.TELEGRAM_STARS
+        logger.warning(f"Unknown billing gateway type '{raw}' - falling back to '{fallback}'")
+        return fallback
+
+
 def billing_transaction_to_dto(bt: BillingTransaction) -> TransactionDto:
     plan_snapshot = billing_plan_snapshot_to_dto(bt.Plan) if bt.Plan else PlanSnapshotDto.test()
     pricing = billing_price_details_to_dto(bt.Pricing) if bt.Pricing else PriceDetailsDto()
@@ -218,9 +231,7 @@ def billing_transaction_to_dto(bt: BillingTransaction) -> TransactionDto:
         status=TransactionStatus(bt.Status) if bt.Status else TransactionStatus.PENDING,
         is_test=bt.IsTest,
         purchase_type=PurchaseType(bt.PurchaseType) if bt.PurchaseType else PurchaseType.NEW,
-        gateway_type=PaymentGatewayType(bt.GatewayType)
-        if bt.GatewayType
-        else PaymentGatewayType.TELEGRAM_STARS,
+        gateway_type=_parse_gateway_type(bt.GatewayType),
         pricing=pricing,
         currency=Currency(bt.Currency) if bt.Currency else Currency.USD,
         plan=plan_snapshot,
