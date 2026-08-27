@@ -50,7 +50,7 @@ class TrialReminderConsumer(SupervisedKafkaConsumer):
                 return
 
             connect_url = SubscriptionService.build_connect_url(
-                subscription.url, config.remnawave.sub_public_domain
+                subscription.url, config.website_url
             )
             await schedule_not_connected_reminder(redis_client, int(telegram_id), connect_url)
             logger.info(f"Scheduled trial reminder for telegram_id={telegram_id}")

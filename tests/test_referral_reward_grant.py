@@ -151,7 +151,8 @@ class TestGiveReferrerRewardTask:
         notification_service = AsyncMock()
         referral_service = AsyncMock()
         config = MagicMock()
-        config.remnawave.sub_public_domain = "componovpn.com"
+        config.remnawave.sub_public_domain = "getfastlink.online"
+        config.website_url = "https://componovpn.com"
 
         await unwrap_task(give_referrer_reward_task)(
             user_telegram_id=100,

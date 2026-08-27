@@ -248,6 +248,7 @@ Now, open the .env file and update the variables:
 - **`REMNAWAVE_HOST`** : The domain or Docker container name.
 - **`REMNAWAVE_TOKEN`** : Remnawave API token, created in the panel.
 - **`REMNAWAVE_WEBHOOK_SECRET`** : Must match the value of `WEBHOOK_SECRET_HEADER` from `.env` the panel.
+- **`APP_WEBSITE_URL`** : Public website base URL, used to build the `/connect/<shortUuid>` step-by-step connection guide link (default `https://componovpn.com`). Independent of `REMNAWAVE_SUB_PUBLIC_DOMAIN`, which is the subscription/API mirror host — the website is never a mirror.
 - **`APP_EXPERIMENT_TRIAL_ENABLED`** : Enable local trial A/B (default `false`).
 - **`APP_EXPERIMENT_TRIAL_ON_WEIGHT`** : Trial-on percentage when local experiment is enabled.
 - **`APP_EXPERIMENT_TRIAL_OFFER_START_DATE`** : Start date-time (ISO-8601 UTC) for `trial_offer` gate.

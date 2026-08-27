@@ -236,3 +236,22 @@ class TestConnectGetter:
         )
 
         assert result["url"] == ""
+
+    @pytest.mark.asyncio
+    async def test_url_uses_website_host_regardless_of_subscription_mirror_host(self):
+        """The guide page must always live on the website domain, never the
+        subscription's own (mirror) host, e.g. getfastlink.online."""
+        subscription = make_subscription()
+        subscription.url = "https://getfastlink.online/connect/7UK9yXmGY8d5vRss"
+        user = make_user(subscription=subscription)
+        config = make_config()
+        config.remnawave.sub_public_domain = "getfastlink.online"
+        config.website_url = "https://componovpn.com"
+
+        result = await connect_getter(
+            dialog_manager=make_dialog_manager(),
+            config=config,
+            user=user,
+        )
+
+        assert result["url"] == "https://componovpn.com/connect/7UK9yXmGY8d5vRss"

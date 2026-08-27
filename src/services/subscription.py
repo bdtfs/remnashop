@@ -60,11 +60,12 @@ class SubscriptionService(BaseService):
         return subscription
 
     @staticmethod
-    def build_connect_url(subscription_url: str, public_domain: str = "") -> str:
+    def build_connect_url(
+        subscription_url: str, website_url: str = "https://componovpn.com"
+    ) -> str:
         parsed = urlparse(subscription_url)
         token = parsed.path.rstrip("/").split("/")[-1]
-        netloc = public_domain or parsed.netloc
-        return f"{parsed.scheme}://{netloc}/connect/{token}"
+        return f"{website_url.rstrip('/')}/connect/{token}"
 
     async def create(self, user: UserDto, subscription: SubscriptionDto) -> SubscriptionDto:
         # Billing API (Go) Subscription struct has no json tags — expects PascalCase keys.

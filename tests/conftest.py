@@ -151,7 +151,8 @@ def make_config() -> MagicMock:
     config = MagicMock()
     config.bot.support_username.get_secret_value.return_value = "compono_support"
     config.bot.is_mini_app = False
-    config.remnawave.sub_public_domain = "componovpn.com"
+    config.remnawave.sub_public_domain = "getfastlink.online"
+    config.website_url = "https://componovpn.com"
     config.hydra_primary_domain = "componovpn.com"
     return config
 

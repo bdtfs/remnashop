@@ -113,9 +113,7 @@ async def menu_getter(
                 else False,
                 "connectable": subscription.is_active,
                 "is_app": False,
-                "url": SubscriptionService.build_connect_url(
-                    subscription.url, config.remnawave.sub_public_domain
-                ),
+                "url": SubscriptionService.build_connect_url(subscription.url, config.website_url),
                 "tg_proxy_available": len(tg_proxies) > 0,
             }
         )
@@ -135,9 +133,7 @@ async def connect_getter(
     subscription = user.current_subscription
     url = ""
     if subscription and subscription.url:
-        url = SubscriptionService.build_connect_url(
-            subscription.url, config.remnawave.sub_public_domain
-        )
+        url = SubscriptionService.build_connect_url(subscription.url, config.website_url)
     return {"url": url}
 
 

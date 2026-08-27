@@ -121,7 +121,8 @@ class TestTrialTaskIdempotency:
         notification_service = AsyncMock()
         redis_client = FakeRedis()
         config = MagicMock()
-        config.remnawave.sub_public_domain = "componovpn.com"
+        config.remnawave.sub_public_domain = "getfastlink.online"
+        config.website_url = "https://componovpn.com"
 
         raw_fn = unwrap_task(trial_subscription_task)
 
@@ -152,7 +153,8 @@ class TestTrialTaskIdempotency:
         notification_service = AsyncMock()
         redis_client = FakeRedis()
         config = MagicMock()
-        config.remnawave.sub_public_domain = "componovpn.com"
+        config.remnawave.sub_public_domain = "getfastlink.online"
+        config.website_url = "https://componovpn.com"
 
         raw_fn = unwrap_task(trial_subscription_task)
 
@@ -191,7 +193,8 @@ class TestTrialTaskIdempotency:
         notification_service = AsyncMock()
         redis_client = FakeRedis()
         config = MagicMock()
-        config.remnawave.sub_public_domain = "componovpn.com"
+        config.remnawave.sub_public_domain = "getfastlink.online"
+        config.website_url = "https://componovpn.com"
 
         raw_fn = unwrap_task(trial_subscription_task)
 

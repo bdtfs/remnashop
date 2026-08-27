@@ -38,7 +38,8 @@ class TestPurchaseSubscriptionTaskFlushesPendingReferralRewards:
         referral_service = AsyncMock()
         redis_client = AsyncMock()
         config = MagicMock()
-        config.remnawave.sub_public_domain = "componovpn.com"
+        config.remnawave.sub_public_domain = "getfastlink.online"
+        config.website_url = "https://componovpn.com"
 
         raw_fn = unwrap_task(purchase_subscription_task)
 
@@ -77,7 +78,8 @@ class TestPurchaseSubscriptionTaskFlushesPendingReferralRewards:
         referral_service.flush_pending_rewards.side_effect = RuntimeError("billing down")
         redis_client = AsyncMock()
         config = MagicMock()
-        config.remnawave.sub_public_domain = "componovpn.com"
+        config.remnawave.sub_public_domain = "getfastlink.online"
+        config.website_url = "https://componovpn.com"
 
         raw_fn = unwrap_task(purchase_subscription_task)
 

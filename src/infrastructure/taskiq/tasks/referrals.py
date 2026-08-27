@@ -226,7 +226,7 @@ async def give_referrer_reward_task(
             return
         if subscription_url:
             connect_url = SubscriptionService.build_connect_url(
-                subscription_url, config.remnawave.sub_public_domain
+                subscription_url, config.website_url
             )
     else:
         raise ValueError(
