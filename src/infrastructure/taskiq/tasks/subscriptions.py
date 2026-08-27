@@ -134,7 +134,7 @@ async def trial_subscription_task(
             ),
         )
         connect_url = SubscriptionService.build_connect_url(
-            result.subscription_url, config.remnawave.sub_public_domain
+            result.subscription_url, config.website_url
         )
         await schedule_not_connected_reminder(redis_client, user.telegram_id, connect_url)
 
@@ -407,9 +407,7 @@ async def purchase_subscription_task(
         if purchase_type == PurchaseType.NEW and not has_trial:
             sub = await subscription_service.get_current(user.telegram_id)
             if sub:
-                connect_url = SubscriptionService.build_connect_url(
-                    sub.url, config.remnawave.sub_public_domain
-                )
+                connect_url = SubscriptionService.build_connect_url(sub.url, config.website_url)
                 await schedule_not_connected_reminder(redis_client, user.telegram_id, connect_url)
 
         await _flush_pending_referral_rewards(referral_service, user.telegram_id)

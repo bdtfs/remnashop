@@ -431,3 +431,39 @@ class TestRewriteSubUrl:
         result = svc._rewrite_sub_url(sub)
 
         assert result.url == "https://panel.internal.com/sub/token123"
+
+
+class TestBuildConnectUrl:
+    """The guide page URL is always built on the website domain, never the
+    subscription URL's own (mirror) host."""
+
+    def test_uses_website_url_regardless_of_subscription_host(self):
+        result = SubscriptionService.build_connect_url(
+            "https://getfastlink.online/connect/7UK9yXmGY8d5vRss",
+            "https://componovpn.com",
+        )
+
+        assert result == "https://componovpn.com/connect/7UK9yXmGY8d5vRss"
+
+    def test_extracts_short_uuid_regardless_of_scheme(self):
+        result = SubscriptionService.build_connect_url(
+            "http://panel.internal.com/sub/xyz789",
+            "https://componovpn.com",
+        )
+
+        assert result == "https://componovpn.com/connect/xyz789"
+
+    def test_defaults_to_componovpn_when_website_url_not_provided(self):
+        result = SubscriptionService.build_connect_url(
+            "https://getfastlink.online/connect/abc123",
+        )
+
+        assert result == "https://componovpn.com/connect/abc123"
+
+    def test_strips_trailing_slash_from_website_url(self):
+        result = SubscriptionService.build_connect_url(
+            "https://getfastlink.online/connect/abc123",
+            "https://componovpn.com/",
+        )
+
+        assert result == "https://componovpn.com/connect/abc123"

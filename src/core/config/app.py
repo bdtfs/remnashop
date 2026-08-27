@@ -73,6 +73,7 @@ class AppConfig(BaseConfig, env_prefix="APP_"):
     trial_failed_url: str = "https://componovps.com/trial/failed"
     yookassa_receipt_url: str = "https://yookassa.ru/my/i/Z8AkHJ_F9sO_/l"
     portal_url: str = "https://componovpn.org/portal"
+    website_url: str = "https://componovpn.com"
 
     channel_incentive_enabled: bool = False
     channel_incentive_address: str = ""

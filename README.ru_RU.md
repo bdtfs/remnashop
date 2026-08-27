@@ -249,6 +249,7 @@ sed -i "s|^DATABASE_PASSWORD=.*|DATABASE_PASSWORD=$(openssl rand -hex 24 | tr -d
 - **`REMNAWAVE_HOST`** : Домен или имя контейнера Docker.
 - **`REMNAWAVE_TOKEN`** : API-токен Remnawave, созданный в панели.
 - **`REMNAWAVE_WEBHOOK_SECRET`** : Должен совпадать со значением `WEBHOOK_SECRET_HEADER` из `.env` панели.
+- **`APP_WEBSITE_URL`** : Базовый URL публичного сайта, используется для построения ссылки на инструкцию `/connect/<shortUuid>` (по умолчанию `https://componovpn.com`). Не связан с `REMNAWAVE_SUB_PUBLIC_DOMAIN` — это домен зеркала подписки/API, сайт никогда не зеркало.
 
 > [!WARNING]
 > Также в зависимости от вашей конфигурации обратите внимание на данные переменные: **`BOT_MINI_APP`**, **`REMNAWAVE_CADDY_TOKEN`**, **`REMNAWAVE_COOKIE`**.

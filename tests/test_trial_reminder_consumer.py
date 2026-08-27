@@ -15,13 +15,19 @@ from tests.conftest import make_subscription
 from src.infrastructure.kafka.trial_reminder_consumer import TrialReminderConsumer
 
 
-def _make_container(subscription_dto, redis_client, sub_public_domain: str = "panel.example.com"):
+def _make_container(
+    subscription_dto,
+    redis_client,
+    website_url: str = "https://componovpn.com",
+    sub_public_domain: str = "getfastlink.online",
+):
     """Build a MagicMock container whose `container()` returns an async ctx mgr
     yielding a request_container with .get() resolving the three injected types."""
     subscription_service = MagicMock()
     subscription_service.get_current = AsyncMock(return_value=subscription_dto)
 
     config = MagicMock()
+    config.website_url = website_url
     config.remnawave.sub_public_domain = sub_public_domain
 
     request_container = MagicMock()
@@ -98,9 +104,12 @@ class TestHandleMessage:
     async def test_schedules_reminder_for_trial(self):
         redis_client = AsyncMock()
         sub = make_subscription()
-        sub.url = "https://panel.example.com/sub/abc123"
+        sub.url = "https://getfastlink.online/sub/abc123"
         container, sub_service = _make_container(
-            sub, redis_client, sub_public_domain="public.example.com"
+            sub,
+            redis_client,
+            website_url="https://componovpn.com",
+            sub_public_domain="getfastlink.online",
         )
         consumer = _make_consumer(container)
 
@@ -114,8 +123,9 @@ class TestHandleMessage:
             args, _ = mocked.call_args
             assert args[0] is redis_client
             assert args[1] == 12345
-            # connect_url is built from the rewritten URL with public domain
-            assert args[2] == "https://public.example.com/connect/abc123"
+            # connect_url is built from the website domain, regardless of the
+            # subscription URL's own (mirror) host
+            assert args[2] == "https://componovpn.com/connect/abc123"
 
         sub_service.get_current.assert_awaited_once_with(12345)
 
